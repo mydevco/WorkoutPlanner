@@ -182,9 +182,19 @@
       </section>`).join("");
       $$(".print-program").forEach((button) => button.addEventListener("click", () => window.print()));
       const focus = $("#program-focus-filter");
-      focus.addEventListener("change", () => $$(".program-block", target).forEach((block) => {
-        block.hidden = Boolean(focus.value && block.dataset.focus !== focus.value);
-      }));
+      const search = $("#program-search");
+      const refreshVisibility = () => {
+        const term = search.value.trim().toLowerCase();
+        $$(".program-block", target).forEach((block) => {
+          const matchesFocus = !focus.value || block.dataset.focus === focus.value;
+          const matchesSearch = !term || block.textContent.toLowerCase().includes(term);
+          block.hidden = !(matchesFocus && matchesSearch);
+        });
+        $("#program-count").textContent = `${$$(".program-block:not([hidden])", target).length} programs shown`;
+      };
+      focus.addEventListener("change", refreshVisibility);
+      search.addEventListener("input", refreshVisibility);
+      $("#clear-program-filters").addEventListener("click", () => { search.value = ""; focus.value = ""; refreshVisibility(); search.focus(); });
       wireBuilder(programs, await api("/api/exercises"));
     } catch (error) {
       target.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
