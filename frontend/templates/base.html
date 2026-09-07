@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Forge Fitness — practical workouts that fit your day.">
+  <title>{% block title %}Forge Fitness{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body data-page="{{ page }}">
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <div class="container nav-wrap">
+      <a class="brand" href="{{ url_for('home') }}" aria-label="Forge Fitness home">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span>FORGE<span class="brand-dot">.</span></span>
+      </a>
+      <button class="menu-toggle no-print" type="button" aria-controls="site-nav" aria-expanded="false">
+        <span class="sr-only">Toggle menu</span><span aria-hidden="true">☰</span>
+      </button>
+      <nav id="site-nav" class="site-nav" aria-label="Primary navigation">
+        <a class="{{ 'active' if page == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
+        <a class="{{ 'active' if page == 'catalog' else '' }}" href="{{ url_for('catalog') }}">Catalog</a>
+        <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}">Programs</a>
+        <a class="nav-admin {{ 'active' if page == 'admin' else '' }}" href="{{ url_for('admin') }}">Manage workouts</a>
+        {% if current_user %}
+          <form class="nav-auth no-print" method="post" action="{{ url_for('logout') }}"><span>{{ current_user.name or current_user.email }}</span><button type="submit">Log out</button></form>
+        {% elif oauth_providers %}
+          <a class="nav-auth" href="{{ url_for('login') }}">Admin sign in</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+  <main id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <div class="container footer-grid">
+      <div>
+        <a class="brand footer-brand" href="{{ url_for('home') }}"><span class="brand-mark" aria-hidden="true">F</span><span>FORGE<span class="brand-dot">.</span></span></a>
+        <p>Train with intention. Leave stronger.</p>
+      </div>
+      <div class="footer-links">
+        <a href="{{ url_for('catalog') }}">Workout catalog</a>
+        <a href="{{ url_for('programs') }}">Training programs</a>
+        <a href="{{ url_for('admin') }}">Admin CRUD</a>
+      </div>
+      <p class="footer-note">© 2026 Forge Fitness<br>Move well, every day.</p>
+    </div>
+  </footer>
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>

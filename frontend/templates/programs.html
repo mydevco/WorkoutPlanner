@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Training programs — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero program-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">Follow the arc</p><h1>Training<br><em>programs.</em></h1></div>
+    <p>Pick the time you have, then show up. Each program brings a clear focus and a short list of sessions that work together.</p>
+  </div>
+</section>
+<section class="section programs-section">
+  <div class="container">
+    <div class="program-toolbar no-print"><p id="program-count" class="results-meta">Loading programs…</p><button class="button button-small button-dark print-trigger" type="button">Print programs</button></div>
+    <div id="program-list" class="program-list" aria-live="polite"><p class="loading">Loading programs…</p></div>
+  </div>
+</section>
+{% endblock %}

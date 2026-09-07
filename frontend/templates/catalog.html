@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Workout catalog — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">The library</p><h1>Workout<br><em>catalog.</em></h1></div>
+    <p>Filter by time, training focus, or equipment. Every session gives you enough structure to start with confidence.</p>
+  </div>
+</section>
+<section class="section catalog-section">
+  <div class="container">
+    <div class="toolbar no-print" aria-label="Workout filters">
+      <label class="search-field"><span class="sr-only">Search workouts</span><span aria-hidden="true">⌕</span><input id="search-input" type="search" placeholder="Search workouts…" autocomplete="off"></label>
+      <label><span class="sr-only">Filter by duration</span><select id="duration-filter"><option value="">All durations</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option></select></label>
+      <label><span class="sr-only">Filter by focus</span><select id="category-filter"><option value="">All focuses</option><option value="full-body">Full-body</option><option value="leg day">Leg day</option><option value="upper body">Upper body</option><option value="core">Core</option><option value="hybrid">Hybrid</option></select></label>
+      <button id="clear-filters" class="button button-small button-light" type="button">Clear</button>
+      <button class="button button-small button-dark print-trigger" type="button">Print catalog</button>
+    </div>
+    <div class="results-meta"><span id="results-count" aria-live="polite">Loading workouts…</span></div>
+    <div id="catalog-grid" class="workout-grid" aria-live="polite"><p class="loading">Loading workouts…</p></div>
+    <div id="empty-state" class="empty-state" hidden><span aria-hidden="true">◌</span><h2>No workouts found</h2><p>Try a different search or clear your filters.</p></div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS workouts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    category TEXT NOT NULL,
+    duration INTEGER NOT NULL,
+    equipment TEXT NOT NULL DEFAULT '[]',
+    description TEXT NOT NULL,
+    exercises TEXT NOT NULL DEFAULT '[]',
+    video_url TEXT NOT NULL DEFAULT '',
+    program TEXT NOT NULL DEFAULT 'hybrid',
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS programs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    slug TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    duration INTEGER NOT NULL,
+    focus TEXT NOT NULL,
+    description TEXT NOT NULL,
+    accent TEXT NOT NULL DEFAULT '#e3ff61'
+);

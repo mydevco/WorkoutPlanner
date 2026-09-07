@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Forge Fitness — Train with intention{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="container hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">A practical workout library</p>
+      <h1>Make your<br><em>move.</em></h1>
+      <p class="hero-intro">Simple, purposeful sessions for real schedules. Find your next workout, follow a focused program, and make every minute count.</p>
+      <div class="hero-actions no-print">
+        <a class="button button-primary" href="{{ url_for('catalog') }}">Explore workouts <span aria-hidden="true">↗</span></a>
+        <a class="button button-quiet" href="{{ url_for('programs') }}">View programs</a>
+      </div>
+    </div>
+    <div class="hero-art" aria-label="Abstract illustration of movement" role="img">
+      <div class="art-ring ring-one"></div><div class="art-ring ring-two"></div>
+      <div class="art-block block-one"></div><div class="art-block block-two"></div>
+      <span class="art-label">TRAIN<br>SMART</span>
+      <span class="art-number">01</span>
+    </div>
+  </div>
+</section>
+<section class="stats-strip">
+  <div class="container stats-grid">
+    <div><strong id="workout-count">—</strong><span>workouts ready</span></div>
+    <div><strong>30–60</strong><span>minute sessions</span></div>
+    <div><strong>05</strong><span>training focuses</span></div>
+    <div><strong>∞</strong><span>ways to get moving</span></div>
+  </div>
+</section>
+<section class="section">
+  <div class="container">
+    <div class="section-heading">
+      <div><p class="eyebrow">Start here</p><h2>Built for your<br><em>today.</em></h2></div>
+      <a class="text-link no-print" href="{{ url_for('catalog') }}">See all workouts <span aria-hidden="true">→</span></a>
+    </div>
+    <div id="featured-workouts" class="workout-grid" aria-live="polite">
+      <p class="loading">Loading workouts…</p>
+    </div>
+  </div>
+</section>
+<section class="section coach-section no-print">
+  <div class="container coach-grid">
+    <div>
+      <p class="eyebrow">Gemini workout coach</p>
+      <h2>Ask what fits<br><em>today.</em></h2>
+      <p class="coach-intro">Describe your time, focus, and available equipment. The coach can only suggest sessions from the Forge catalog.</p>
+    </div>
+    <div class="coach-card">
+      <form id="coach-form">
+        <label for="coach-message">What do you want to train today?</label>
+        <textarea id="coach-message" rows="3" maxlength="500" placeholder="I have 30 minutes and dumbbells. Keep it full-body."></textarea>
+        <button class="button button-primary" type="submit">Suggest today's workout <span aria-hidden="true">↗</span></button>
+      </form>
+      <p id="coach-status" class="form-message" role="status" aria-live="polite">Checking coach availability…</p>
+      <div id="coach-answer" class="coach-answer" aria-live="polite"></div>
+    </div>
+  </div>
+</section>
+<section class="dark-section">
+  <div class="container callout-grid">
+    <div><p class="eyebrow eyebrow-light">The Forge approach</p><h2>Less noise.<br><em>More work.</em></h2></div>
+    <div><p>Every session has a clear purpose, a realistic time box, and movements you can own. No guesswork, no clutter — just a better way to train.</p><a class="button button-outline no-print" href="{{ url_for('programs') }}">Find your rhythm <span aria-hidden="true">↗</span></a></div>
+  </div>
+</section>
+{% endblock %}
