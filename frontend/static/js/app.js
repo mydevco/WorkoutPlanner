@@ -141,6 +141,7 @@
         <div class="exercise-group-heading"><p class="eyebrow">${escapeHtml(part)}</p><span>${items.length} movement${items.length === 1 ? "" : "s"}</span></div>
         <div class="exercise-grid">${items.map((exercise) => `<article class="exercise-card">
           <h2>${escapeHtml(exercise.name)}</h2>
+          <span class="exercise-type">${escapeHtml(exercise.type || "Main work")}</span>
           <p>${escapeHtml(exercise.description)}</p>
           <table class="exercise-usage"><thead><tr><th>Used in</th><th>Sets</th><th>Reps/time</th><th>Rest</th></tr></thead><tbody>
             ${listOrEmpty(exercise.usage).map((use) => `<tr><td>${escapeHtml(use.workout)}</td><td>${escapeHtml(use.sets || "—")}</td><td>${escapeHtml(use.reps || "—")}</td><td>${escapeHtml(use.rest || "—")}</td></tr>`).join("")}

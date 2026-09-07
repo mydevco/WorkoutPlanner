@@ -45,13 +45,13 @@ class ForgeApiSmokeTest(unittest.TestCase):
         exercises = response.get_json()
         names = {item["name"] for item in exercises}
         seeded_names = {exercise["name"] for workout in SEED_WORKOUTS for exercise in workout["exercises"]}
-        self.assertEqual(names, seeded_names)
+        self.assertTrue(seeded_names <= names)
         self.assertTrue(all(item["description"] for item in exercises))
         self.assertTrue(all(item["body_part"] for item in exercises))
         self.assertTrue(all(isinstance(item["equipment"], list) for item in exercises))
         self.assertTrue(all(isinstance(item["usage"], list) for item in exercises))
         self.assertTrue(all(set(item["equipment"]) <= set(self.client.get("/api/equipment").get_json()) for item in exercises))
-        self.assertEqual(len(EXERCISE_METADATA), len(seeded_names))
+        self.assertTrue(seeded_names <= set(EXERCISE_METADATA))
         js_response = self.client.get("/static/js/app.js")
         js = js_response.get_data(as_text=True)
         js_response.close()
@@ -113,8 +113,35 @@ class ForgeApiSmokeTest(unittest.TestCase):
         workout = next(item for item in self.client.get("/api/workouts").get_json() if item["title"] == "Pull + Press")
         self.assertEqual(
             {exercise["name"] for exercise in workout["exercises"]},
-            {"Pull-up", "Barbell curl", "Bench triceps dip"},
+            {"Pull-up", "Barbell curl", "Bench triceps dip", "Arm circles", "Cat-cow", "Child's pose", "Doorway chest stretch"},
         )
+
+    def test_warmups_and_static_cooldowns_are_ordered_in_every_workout(self):
+        workouts = self.client.get("/api/workouts").get_json()
+        self.assertTrue(workouts)
+        for workout in workouts:
+            exercises = workout["exercises"]
+            self.assertEqual(exercises[0].get("type"), "Dynamic warm-up")
+            self.assertEqual(exercises[-1].get("type"), "Static cooldown")
+            self.assertTrue(any(item["type"] == "Dynamic warm-up" for item in exercises))
+            self.assertTrue(any(item["type"] == "Static cooldown" for item in exercises))
+            self.assertTrue(all(item.get("equipment", []) == [] for item in exercises if item["type"] != "Main work"))
+        programs = self.client.get("/api/programs").get_json()
+        self.assertEqual({program["duration"] for program in programs}, {30, 45, 60})
+
+    def test_mobility_exercises_have_catalog_metadata_and_allowed_equipment(self):
+        exercises = {item["name"]: item for item in self.client.get("/api/exercises").get_json()}
+        for name, exercise_type in (
+            ("March in place", "Dynamic warm-up"),
+            ("Arm circles", "Dynamic warm-up"),
+            ("Standing quad stretch", "Static cooldown"),
+            ("Child's pose", "Static cooldown"),
+        ):
+            self.assertIn(name, exercises)
+            self.assertEqual(exercises[name]["type"], exercise_type)
+            self.assertTrue(exercises[name]["description"])
+            self.assertTrue(exercises[name]["usage"])
+            self.assertTrue(set(exercises[name]["equipment"]) <= set(self.client.get("/api/equipment").get_json()))
 
     def test_exercise_page_has_print_controls_and_print_css(self):
         page = self.client.get("/exercises").get_data(as_text=True)
