@@ -167,6 +167,16 @@ SEED_WORKOUTS = [
 ]
 
 EXERCISE_METADATA = {
+    "March in place": ("Full body", "Dynamic warm-up", "Stand tall and alternate knee lifts at an easy, steady pace."),
+    "Arm circles": ("Shoulders", "Dynamic warm-up", "Sweep straight arms through small then larger circles without shrugging."),
+    "World's greatest stretch": ("Full body", "Dynamic warm-up", "Step into a long lunge, place the opposite hand down, and rotate the other arm upward."),
+    "Hip hinge reach": ("Hamstrings", "Dynamic warm-up", "Soften your knees, hinge your hips back, and reach forward before standing tall."),
+    "Cat-cow": ("Spine", "Dynamic warm-up", "On hands and knees, alternate gently rounding and extending your spine with your breath."),
+    "Child's pose": ("Hips", "Static cooldown", "Sit your hips toward your heels, reach long through your arms, and breathe calmly."),
+    "Standing quad stretch": ("Quadriceps", "Static cooldown", "Hold one ankle behind you, keep knees close, and gently tuck your hips."),
+    "Half-kneeling hip flexor stretch": ("Hip flexors", "Static cooldown", "Kneel with one foot forward, tuck your pelvis, and shift forward gently."),
+    "Doorway chest stretch": ("Chest", "Static cooldown", "Place your forearms on a doorway and step through until your chest gently lengthens."),
+    "Seated hamstring stretch": ("Hamstrings", "Static cooldown", "Extend one leg, hinge forward from the hips, and hold without bouncing."),
     "Goblet squat": ("Legs", "Hold the weight at your chest, sit your hips down, then drive through the floor to stand."),
     "Dumbbell bench press": ("Chest", "Press the dumbbells from chest level until your arms are straight, then lower with control."),
     "One-arm row": ("Back", "Brace on a bench, pull one weight toward your ribs, and lower it without twisting."),
@@ -194,6 +204,43 @@ EXERCISE_METADATA = {
     "Ruck walk": ("Conditioning", "Walk tall under your ruck load with short, steady steps and relaxed shoulders."),
     "Bodyweight squat": ("Legs", "Sit your hips back and down, keep your chest proud, then stand through both feet."),
 }
+
+WARMUP_BY_CATEGORY = {
+    "full-body": [
+        {"name": "March in place", "sets": 1, "reps": "2 min", "rest": "15 sec", "type": "Dynamic warm-up"},
+        {"name": "World's greatest stretch", "sets": 1, "reps": "5/side", "rest": "15 sec", "type": "Dynamic warm-up"},
+    ],
+    "leg day": [
+        {"name": "March in place", "sets": 1, "reps": "2 min", "rest": "15 sec", "type": "Dynamic warm-up"},
+        {"name": "Hip hinge reach", "sets": 1, "reps": "10", "rest": "15 sec", "type": "Dynamic warm-up"},
+    ],
+    "upper body": [
+        {"name": "Arm circles", "sets": 1, "reps": "30 sec", "rest": "15 sec", "type": "Dynamic warm-up"},
+        {"name": "Cat-cow", "sets": 1, "reps": "8", "rest": "15 sec", "type": "Dynamic warm-up"},
+    ],
+    "core": [
+        {"name": "Cat-cow", "sets": 1, "reps": "8", "rest": "15 sec", "type": "Dynamic warm-up"},
+        {"name": "March in place", "sets": 1, "reps": "2 min", "rest": "15 sec", "type": "Dynamic warm-up"},
+    ],
+    "hybrid": [
+        {"name": "March in place", "sets": 1, "reps": "2 min", "rest": "15 sec", "type": "Dynamic warm-up"},
+        {"name": "World's greatest stretch", "sets": 1, "reps": "5/side", "rest": "15 sec", "type": "Dynamic warm-up"},
+    ],
+}
+COOLDOWN_BY_CATEGORY = {
+    "leg day": [
+        {"name": "Standing quad stretch", "sets": 1, "reps": "30 sec/side", "rest": "—", "type": "Static cooldown"},
+        {"name": "Seated hamstring stretch", "sets": 1, "reps": "30 sec/side", "rest": "—", "type": "Static cooldown"},
+    ],
+    "upper body": [
+        {"name": "Doorway chest stretch", "sets": 1, "reps": "30 sec", "rest": "—", "type": "Static cooldown"},
+        {"name": "Child's pose", "sets": 1, "reps": "45 sec", "rest": "—", "type": "Static cooldown"},
+    ],
+}
+DEFAULT_COOLDOWN = [
+    {"name": "Child's pose", "sets": 1, "reps": "45 sec", "rest": "—", "type": "Static cooldown"},
+    {"name": "Half-kneeling hip flexor stretch", "sets": 1, "reps": "30 sec/side", "rest": "—", "type": "Static cooldown"},
+]
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -532,8 +579,18 @@ def get_exercise_catalog() -> list[dict]:
                 continue
             name = str(exercise.get("name", "")).strip()
             if name:
+                exercise_type = exercise_metadata(name)[1]
+                tagged_equipment = exercise.get("equipment")
+                if not isinstance(tagged_equipment, list):
+                    tagged_equipment = (
+                        ["bodyweight", "yoga mat"]
+                        if exercise_type == "Static cooldown"
+                        else ["bodyweight"]
+                        if exercise_type == "Dynamic warm-up"
+                        else equipment
+                    )
                 equipment_by_exercise.setdefault(name, set()).update(
-                    item for item in equipment if item in ALLOWED_EQUIPMENT
+                    item for item in tagged_equipment if item in ALLOWED_EQUIPMENT
                 )
                 usage_by_exercise.setdefault(name, []).append(
                     {
@@ -545,20 +602,33 @@ def get_exercise_catalog() -> list[dict]:
                 )
     catalog = []
     for name in sorted(equipment_by_exercise, key=str.casefold):
-        body_part, description = EXERCISE_METADATA.get(
-            name,
-            ("Full body", "Move with control through a comfortable range and keep your trunk braced."),
-        )
+        body_part, exercise_type, description = exercise_metadata(name)
         catalog.append(
             {
                 "name": name,
                 "body_part": body_part,
+                "type": exercise_type,
                 "description": description,
                 "equipment": sorted(equipment_by_exercise[name], key=str.casefold),
                 "usage": usage_by_exercise.get(name, []),
             }
         )
     return catalog
+
+
+def exercise_metadata(name: str) -> tuple[str, str, str]:
+    metadata = EXERCISE_METADATA.get(name)
+    if metadata is None:
+        return (
+            "Full body",
+            "Main work",
+            "Move with control through a comfortable range and keep your trunk braced.",
+        )
+    if len(metadata) == 3:
+        body_part, exercise_type, description = metadata
+        return body_part, exercise_type, description
+    body_part, description = metadata
+    return body_part, "Main work", description
 
 
 def generate_gemini_response(api_key: str, message: str, catalog: dict) -> str:
@@ -711,6 +781,7 @@ def initialize_database(app: Flask) -> None:
                 ),
             )
     ensure_seed_arm_exercises(database)
+    ensure_seed_mobility_exercises(database)
     database.commit()
     database.close()
 
@@ -725,10 +796,9 @@ def serialize_workout(row: sqlite3.Row | dict) -> dict:
     for exercise in data.get("exercises", []):
         if isinstance(exercise, dict):
             name = str(exercise.get("name", "")).strip()
-            exercise["instruction"] = EXERCISE_METADATA.get(
-                name,
-                ("Full body", "Move with control through a comfortable range and keep your trunk braced."),
-            )[1]
+            _, exercise_type, instruction = exercise_metadata(name)
+            exercise["type"] = exercise.get("type") or exercise_type
+            exercise["instruction"] = instruction
     return data
 
 
@@ -757,6 +827,35 @@ def ensure_seed_arm_exercises(database: sqlite3.Connection) -> None:
             "UPDATE workouts SET exercises = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
             (json.dumps(exercises + additions), row["id"]),
         )
+
+
+def ensure_seed_mobility_exercises(database: sqlite3.Connection) -> None:
+    rows = database.execute("SELECT id, category, exercises FROM workouts").fetchall()
+    for row in rows:
+        try:
+            exercises = json.loads(row["exercises"])
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if not isinstance(exercises, list):
+            continue
+        names = {item.get("name") for item in exercises if isinstance(item, dict)}
+        warmups = [
+            dict(item)
+            for item in WARMUP_BY_CATEGORY.get(row["category"], WARMUP_BY_CATEGORY["hybrid"])
+            if item["name"] not in names
+        ]
+        names.update(item["name"] for item in warmups)
+        cooldowns = [
+            dict(item)
+            for item in COOLDOWN_BY_CATEGORY.get(row["category"], DEFAULT_COOLDOWN)
+            if item["name"] not in names
+        ]
+        updated = warmups + exercises + cooldowns
+        if updated != exercises:
+            database.execute(
+                "UPDATE workouts SET exercises = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+                (json.dumps(updated), row["id"]),
+            )
 
 
 def validate_workout(payload: dict, partial: bool = False) -> tuple[list[str], dict]:
