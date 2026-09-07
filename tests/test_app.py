@@ -27,6 +27,26 @@ class ForgeApiSmokeTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200, path)
         self.assertEqual(self.client.get("/healthz").get_json()["status"], "ok")
 
+    def test_manage_workout_exercise_manager_ui_and_local_crud(self):
+        page = self.client.get("/admin").get_data(as_text=True)
+        self.assertIn("Manage", page)
+        self.assertIn("Exercise catalog manager", page)
+        self.assertIn("manager-search", page)
+        self.assertIn('maxlength="100"', page)
+        payload = {
+            "name": "Local catalog curl",
+            "body_part": "Biceps",
+            "type": "Main work",
+            "equipment": [],
+            "description": "Curl with steady control and keep your elbow close to your ribs.",
+        }
+        created = self.client.post("/api/exercises", json=payload)
+        self.assertEqual(created.status_code, 201)
+        self.assertIn("Local catalog curl", {item["name"] for item in self.client.get("/api/exercises?q=local").get_json()})
+        invalid = self.client.post("/api/exercises", json={**payload, "name": "Too much gear", "equipment": ["dumbbells", "benches"]})
+        self.assertEqual(invalid.status_code, 400)
+        self.assertIn("no more than one", " ".join(invalid.get_json()["errors"]))
+
     def test_program_page_has_navigation_and_local_builder_ui(self):
         page = self.client.get("/programs").get_data(as_text=True)
         for marker in ("#program-30", "#program-45", "#program-60", "#program-builder", "program-focus-filter", "builder-program", "builder-items"):
@@ -309,6 +329,7 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertEqual(client.post("/api/workouts", json={}).status_code, 401)
         self.assertEqual(client.get("/login").status_code, 200)
         self.assertIn(b"Continue with Google", client.get("/login").data)
+        self.assertEqual(client.post("/api/exercises", json={}).status_code, 401)
 
     def test_oauth_requires_complete_provider_credentials(self):
         with self.assertRaisesRegex(ValueError, "GOOGLE_CLIENT_ID"):

@@ -280,6 +280,10 @@
     const message = $("#form-message");
     const equipment = await api("/api/equipment").catch(() => []);
     $("#equipment-options").innerHTML = equipmentMarkup(equipment);
+    const programs = await api("/api/programs").catch(() => []);
+    $("#program").innerHTML = listOrEmpty(programs).map((program) =>
+      `<option value="${escapeHtml(program.slug)}">${escapeHtml(program.name)}</option>`
+    ).join("");
     let workouts = [];
     const showMessage = (text, success = false) => { message.textContent = text; message.className = `form-message${success ? " success" : ""}`; };
     function resetForm() {
@@ -325,10 +329,70 @@
     refresh();
   }
 
+  async function loadExerciseManager() {
+    const list = $("#exercise-manager-list");
+    const form = $("#exercise-form");
+    if (!list || !form) return;
+    const message = $("#exercise-form-message");
+    const equipment = await api("/api/equipment").catch(() => []);
+    $("#exercise-equipment-options").innerHTML = equipment.map((item) =>
+      `<label class="check-item"><input type="checkbox" name="manager-equipment" value="${escapeHtml(item)}"> ${escapeHtml(labelCase(item))}</label>`
+    ).join("");
+    $$('input[name="manager-equipment"]').forEach((input) => input.addEventListener("change", () => {
+      if (input.checked) $$('input[name="manager-equipment"]').filter((item) => item !== input).forEach((item) => { item.checked = false; });
+    }));
+    let exercises = [];
+    const showMessage = (text, success = false) => { message.textContent = text; message.className = `form-message${success ? " success" : ""}`; };
+    const render = () => {
+      const term = $("#manager-search").value.trim().toLowerCase();
+      const bodyPart = $("#manager-body-part").value;
+      const type = $("#manager-type").value;
+      const equipmentFilter = $("#manager-equipment").value;
+      const filtered = exercises.filter((item) =>
+        (!term || item.name.toLowerCase().includes(term) || item.description.toLowerCase().includes(term)) &&
+        (!bodyPart || item.body_part === bodyPart) &&
+        (!type || item.type === type) &&
+        (!equipmentFilter || item.equipment.includes(equipmentFilter))
+      );
+      $("#manager-count").textContent = `(${filtered.length}/${exercises.length})`;
+      list.innerHTML = filtered.map((item) => `<article class="manager-exercise"><div><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(item.body_part)} · ${escapeHtml(item.type)}</p><p>${escapeHtml(item.description)}</p></div><ul class="tag-list">${item.equipment.map((tag) => `<li>${escapeHtml(tag)}</li>`).join("") || "<li>bodyweight</li>"}</ul></article>`).join("") || "<p class='loading'>No exercises match those filters.</p>";
+    };
+    async function refresh() {
+      try {
+        exercises = await api("/api/exercises");
+        const parts = [...new Set(exercises.map((item) => item.body_part))].sort();
+        const equipmentValues = [...new Set(exercises.flatMap((item) => item.equipment))].sort();
+        $("#manager-body-part").innerHTML = `<option value="">All body parts</option>${parts.map((item) => `<option>${escapeHtml(item)}</option>`).join("")}`;
+        $("#manager-equipment").innerHTML = `<option value="">All equipment</option>${equipmentValues.map((item) => `<option>${escapeHtml(item)}</option>`).join("")}`;
+        render();
+      } catch (error) { list.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`; }
+    }
+    ["manager-search", "manager-body-part", "manager-type", "manager-equipment"].forEach((id) => $(`#${id}`).addEventListener("input", render));
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const selected = $$('input[name="manager-equipment"]:checked').map((input) => input.value);
+      if (selected.length > 1) { showMessage("Choose no more than one equipment type."); return; }
+      const payload = {
+        name: $("#exercise-name").value,
+        body_part: $("#exercise-body-part").value,
+        type: $("#exercise-type").value,
+        equipment: selected,
+        description: $("#exercise-description").value,
+      };
+      try {
+        await api("/api/exercises", { method: "POST", body: JSON.stringify(payload) });
+        form.reset(); await refresh(); showMessage("Exercise added to the catalog.", true);
+      } catch (error) { showMessage(error.message); }
+    });
+    $("#refresh-exercises").addEventListener("click", refresh);
+    $("#show-workout-editor").addEventListener("click", () => { $("#workout-editor").hidden = false; $("#show-workout-editor").hidden = true; });
+    refresh();
+  }
+
   wireMenu(); wirePrint();
   if (page === "home") loadHome();
   if (page === "catalog") loadCatalog();
   if (page === "exercises") loadExercises();
   if (page === "programs") loadPrograms();
-  if (page === "admin") loadAdmin();
+  if (page === "admin") { loadExerciseManager(); loadAdmin(); }
 }());

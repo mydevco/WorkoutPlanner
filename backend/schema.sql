@@ -21,3 +21,14 @@ CREATE TABLE IF NOT EXISTS programs (
     description TEXT NOT NULL,
     accent TEXT NOT NULL DEFAULT '#e3ff61'
 );
+
+CREATE TABLE IF NOT EXISTS exercises (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE COLLATE NOCASE,
+    body_part TEXT NOT NULL,
+    exercise_type TEXT NOT NULL DEFAULT 'Main work',
+    equipment TEXT NOT NULL DEFAULT '[]',
+    description TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
