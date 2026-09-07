@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Manage Workout — Forge Fitness{% endblock %}
+{% block title %}Manage Catalog — Forge Fitness{% endblock %}
 {% block content %}
 <section class="page-hero admin-hero">
   <div class="container page-hero-inner">
-    <div><p class="eyebrow">Library workspace</p><h1>Manage<br><em>Workout.</em></h1></div>
-    <p>Search and curate the exercise catalog first. Workout CRUD remains available below for local library management.</p>
+    <div><p class="eyebrow">Library workspace</p><h1>Manage<br><em>Catalog.</em></h1></div>
+    <p>Search and curate every exercise in the training library. Create new movements on their own focused form.</p>
   </div>
 </section>
 <section class="section admin-section">
   <div class="container">
     <div class="admin-panel exercise-manager-panel">
-      <div class="panel-heading"><div><p class="eyebrow">Exercise catalog manager</p><h2>Exercises <span id="manager-count"></span></h2></div><button id="refresh-exercises" class="icon-button no-print" type="button" aria-label="Refresh exercises">↻</button></div>
+      <div class="panel-heading"><div><p class="eyebrow">Exercise catalog manager</p><h2>Exercises <span id="manager-count"></span></h2></div><div><a class="button button-small button-primary no-print" href="{{ url_for('new_exercise') }}">Add exercise</a><button id="refresh-exercises" class="icon-button no-print" type="button" aria-label="Refresh exercises">↻</button></div></div>
       <div class="manager-toolbar no-print">
         <label>Search<input id="manager-search" type="search" placeholder="Type an exercise name" autocomplete="off"></label>
         <label>Body part<select id="manager-body-part"><option value="">All body parts</option></select></label>
@@ -18,41 +18,6 @@
         <label>Equipment<select id="manager-equipment"><option value="">All equipment</option></select></label>
       </div>
       <div id="exercise-manager-list" class="exercise-manager-list" aria-live="polite"><p class="loading">Loading exercises…</p></div>
-    </div>
-    <div class="admin-layout manager-lower">
-      <div class="admin-panel form-panel">
-        <div class="panel-heading"><div><p class="eyebrow">Catalog editor</p><h2>Add an exercise</h2></div></div>
-        <div id="exercise-form-message" class="form-message" role="status" aria-live="polite"></div>
-        <form id="exercise-form" novalidate>
-          <label>Name<input id="exercise-name" required minlength="3" maxlength="100" placeholder="e.g. Cable-free curl"></label>
-          <div class="form-row"><label>Body part<input id="exercise-body-part" required maxlength="50" placeholder="e.g. Biceps"></label><label>Category/type<select id="exercise-type" required><option value="">Choose type</option><option>Main work</option><option>Dynamic warm-up</option><option>Static cooldown</option></select></label></div>
-          <fieldset><legend>Equipment (0 or 1)</legend><div id="exercise-equipment-options" class="check-grid"></div><small class="field-help">Leave empty for bodyweight. Select no more than one.</small></fieldset>
-          <label>Instructions / description<textarea id="exercise-description" required minlength="10" maxlength="500" rows="4" placeholder="Explain the movement in one or two lines."></textarea></label>
-          <button class="button button-primary full-button" type="submit">Add exercise <span aria-hidden="true">↗</span></button>
-        </form>
-      </div>
-      <div class="admin-panel form-panel">
-        <div class="panel-heading"><div><p class="eyebrow">Workout CRUD</p><h2>Manage sessions</h2></div></div>
-        <p class="field-help">Use the existing workout editor below to maintain seeded and custom sessions.</p>
-        <button class="button button-light no-print" type="button" id="show-workout-editor">Show workout editor</button>
-      </div>
-    </div>
-    <div id="workout-editor" class="admin-layout manager-lower" hidden>
-      <div class="admin-panel form-panel">
-        <div class="panel-heading"><div><p class="eyebrow">Workout editor</p><h2 id="form-heading">Add a workout</h2></div><button id="cancel-edit" class="icon-button" type="button" hidden aria-label="Cancel editing">×</button></div>
-        <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
-        <form id="workout-form" novalidate>
-          <input id="workout-id" type="hidden">
-          <div class="form-row"><label>Title<input id="title" required minlength="3" maxlength="100"></label><label>Focus<select id="category" required><option value="">Choose focus</option><option>full-body</option><option>leg day</option><option>upper body</option><option>core</option><option>hybrid</option></select></label></div>
-          <div class="form-row"><label>Duration<select id="duration" required><option value="">Choose time</option><option>30</option><option>45</option><option>60</option></select></label><label>Program<select id="program" required></select></label></div>
-          <fieldset><legend>Equipment</legend><div id="equipment-options" class="check-grid"></div></fieldset>
-          <label>Description<textarea id="description" rows="3" required minlength="10"></textarea></label>
-          <label>Video link <span class="optional">(optional)</span><input id="video-url" type="url"></label>
-          <label>Exercises <textarea id="exercises" rows="7" required></textarea></label>
-          <button class="button button-primary full-button" type="submit"><span id="submit-label">Save workout</span></button>
-        </form>
-      </div>
-      <div class="admin-panel list-panel"><div class="panel-heading"><h2>Workout list <span id="admin-count"></span></h2><button id="refresh-workouts" class="icon-button no-print" type="button" aria-label="Refresh workouts">↻</button></div><div id="admin-list" class="admin-list" aria-live="polite"></div></div>
     </div>
   </div>
 </section>
