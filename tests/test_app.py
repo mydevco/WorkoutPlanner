@@ -1,4 +1,6 @@
 import unittest
+import json
+import sqlite3
 from unittest.mock import patch
 from pathlib import Path
 
@@ -82,6 +84,37 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertTrue(exercises)
         self.assertTrue(all(item["body_part"] == "Core" for item in exercises))
         self.assertTrue(all("ab roller" in item["equipment"] for item in exercises))
+
+    def test_arm_exercises_have_metadata_usage_and_printable_availability(self):
+        exercises = {item["name"]: item for item in self.client.get("/api/exercises").get_json()}
+        self.assertIn("Barbell curl", exercises)
+        self.assertIn("Bench triceps dip", exercises)
+        self.assertEqual(exercises["Barbell curl"]["body_part"], "Biceps")
+        self.assertEqual(exercises["Bench triceps dip"]["body_part"], "Triceps")
+        self.assertTrue(exercises["Barbell curl"]["description"])
+        self.assertTrue(exercises["Bench triceps dip"]["description"])
+        self.assertEqual(exercises["Barbell curl"]["usage"][0]["workout"], "Pull + Press")
+        self.assertEqual(exercises["Bench triceps dip"]["usage"][0]["reps"], "12")
+        self.assertIn("barbells", exercises["Barbell curl"]["equipment"])
+        self.assertIn("benches", exercises["Bench triceps dip"]["equipment"])
+        self.assertIn("Barbell curl", self.client.get("/api/workouts").get_data(as_text=True))
+        page = self.client.get("/exercises").get_data(as_text=True)
+        self.assertIn("Print exercises", page)
+
+    def test_existing_database_receives_arm_seed_backfill(self):
+        database = sqlite3.connect(TEST_DATABASE)
+        database.execute(
+            "UPDATE workouts SET exercises = ? WHERE title = ?",
+            (json.dumps([{"name": "Pull-up", "sets": 1, "reps": "1", "rest": "1 sec"}]), "Pull + Press"),
+        )
+        database.commit()
+        database.close()
+        create_app({"TESTING": True, "DATABASE": str(TEST_DATABASE)})
+        workout = next(item for item in self.client.get("/api/workouts").get_json() if item["title"] == "Pull + Press")
+        self.assertEqual(
+            {exercise["name"] for exercise in workout["exercises"]},
+            {"Pull-up", "Barbell curl", "Bench triceps dip"},
+        )
 
     def test_exercise_page_has_print_controls_and_print_css(self):
         page = self.client.get("/exercises").get_data(as_text=True)
