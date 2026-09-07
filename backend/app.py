@@ -115,6 +115,8 @@ SEED_WORKOUTS = [
             {"name": "Pull-up", "sets": 4, "reps": "AMRAP", "rest": "75 sec"},
             {"name": "Barbell overhead press", "sets": 3, "reps": "8", "rest": "60 sec"},
             {"name": "Inverted row", "sets": 3, "reps": "10", "rest": "60 sec"},
+            {"name": "Barbell curl", "sets": 3, "reps": "10", "rest": "45 sec"},
+            {"name": "Bench triceps dip", "sets": 3, "reps": "12", "rest": "45 sec"},
         ],
     },
     {
@@ -177,6 +179,8 @@ EXERCISE_METADATA = {
     "Pull-up": ("Back", "Hang from the bar, pull your chest toward it, and lower until your arms are straight."),
     "Barbell overhead press": ("Shoulders", "Start at shoulder height and press the bar overhead while keeping your ribs stacked."),
     "Inverted row": ("Back", "Pull your chest to a bar set at waist height while keeping your body in one straight line."),
+    "Barbell curl": ("Biceps", "Keep your elbows close to your ribs, curl the bar toward your shoulders, then lower it slowly."),
+    "Bench triceps dip": ("Triceps", "Place your hands on the bench edge, lower your hips with control, then press through your palms to rise."),
     "Dead bug": ("Core", "Lie on your back and slowly extend the opposite arm and leg while keeping your low back down."),
     "Ab-wheel rollout": ("Core", "Roll forward from your knees while bracing your midsection, then pull back with control."),
     "Side plank": ("Core", "Support your body on one forearm and the side of your foot, keeping hips lifted and stacked."),
@@ -706,6 +710,7 @@ def initialize_database(app: Flask) -> None:
                     workout["program"],
                 ),
             )
+    ensure_seed_arm_exercises(database)
     database.commit()
     database.close()
 
@@ -725,6 +730,33 @@ def serialize_workout(row: sqlite3.Row | dict) -> dict:
                 ("Full body", "Move with control through a comfortable range and keep your trunk braced."),
             )[1]
     return data
+
+
+def ensure_seed_arm_exercises(database: sqlite3.Connection) -> None:
+    row = database.execute(
+        "SELECT id, exercises FROM workouts WHERE title = ?",
+        ("Pull + Press",),
+    ).fetchone()
+    if row is None:
+        return
+    try:
+        exercises = json.loads(row["exercises"])
+    except (TypeError, json.JSONDecodeError):
+        return
+    if not isinstance(exercises, list):
+        return
+    names = {item.get("name") for item in exercises if isinstance(item, dict)}
+    additions = [
+        exercise for exercise in (
+            {"name": "Barbell curl", "sets": 3, "reps": "10", "rest": "45 sec"},
+            {"name": "Bench triceps dip", "sets": 3, "reps": "12", "rest": "45 sec"},
+        ) if exercise["name"] not in names
+    ]
+    if additions:
+        database.execute(
+            "UPDATE workouts SET exercises = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+            (json.dumps(exercises + additions), row["id"]),
+        )
 
 
 def validate_workout(payload: dict, partial: bool = False) -> tuple[list[str], dict]:
