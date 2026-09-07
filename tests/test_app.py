@@ -27,6 +27,21 @@ class ForgeApiSmokeTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200, path)
         self.assertEqual(self.client.get("/healthz").get_json()["status"], "ok")
 
+    def test_program_page_has_navigation_and_local_builder_ui(self):
+        page = self.client.get("/programs").get_data(as_text=True)
+        for marker in ("#program-30", "#program-45", "#program-60", "#program-builder", "program-focus-filter", "builder-program", "builder-items"):
+            self.assertIn(marker, page)
+        js_response = self.client.get("/static/js/app.js")
+        js = js_response.get_data(as_text=True)
+        js_response.close()
+        for marker in ("localStorage", "data-add", "data-up", "data-down", "builder-print"):
+            self.assertIn(marker, js)
+        css_response = self.client.get("/static/css/styles.css")
+        css = css_response.get_data(as_text=True)
+        css_response.close()
+        self.assertIn(".builder-layout", css)
+        self.assertIn(".program-nav", css)
+
     def test_oauth_disabled_keeps_admin_local(self):
         self.assertEqual(self.client.get("/admin").status_code, 200)
         self.assertEqual(self.client.post("/api/workouts", json={}).status_code, 400)
