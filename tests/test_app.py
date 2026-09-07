@@ -29,10 +29,20 @@ class ForgeApiSmokeTest(unittest.TestCase):
 
     def test_manage_workout_exercise_manager_ui_and_local_crud(self):
         page = self.client.get("/admin").get_data(as_text=True)
-        self.assertIn("Manage", page)
+        self.assertIn("Manage Catalog", page)
         self.assertIn("Exercise catalog manager", page)
         self.assertIn("manager-search", page)
-        self.assertIn('maxlength="100"', page)
+        self.assertNotIn("Add a workout", page)
+        self.assertNotIn("Manage sessions", page)
+        self.assertIn("/exercises/new", page)
+        form_page = self.client.get("/exercises/new")
+        self.assertEqual(form_page.status_code, 200)
+        self.assertIn("exercise-form-wide", form_page.get_data(as_text=True))
+        self.assertIn('optional', form_page.get_data(as_text=True))
+        js_response = self.client.get("/static/js/app.js")
+        js = js_response.get_data(as_text=True)
+        js_response.close()
+        self.assertIn("loadExerciseForm", js)
         payload = {
             "name": "Local catalog curl",
             "body_part": "Biceps",
@@ -46,6 +56,8 @@ class ForgeApiSmokeTest(unittest.TestCase):
         invalid = self.client.post("/api/exercises", json={**payload, "name": "Too much gear", "equipment": ["dumbbells", "benches"]})
         self.assertEqual(invalid.status_code, 400)
         self.assertIn("no more than one", " ".join(invalid.get_json()["errors"]))
+        arbitrary = self.client.post("/api/exercises", json={**payload, "name": "Novel target", "body_part": ""})
+        self.assertEqual(arbitrary.status_code, 201)
 
     def test_program_page_has_navigation_and_local_builder_ui(self):
         page = self.client.get("/programs").get_data(as_text=True)
@@ -330,6 +342,7 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertEqual(client.get("/login").status_code, 200)
         self.assertIn(b"Continue with Google", client.get("/login").data)
         self.assertEqual(client.post("/api/exercises", json={}).status_code, 401)
+        self.assertEqual(client.get("/exercises/new").status_code, 302)
 
     def test_oauth_requires_complete_provider_credentials(self):
         with self.assertRaisesRegex(ValueError, "GOOGLE_CLIENT_ID"):

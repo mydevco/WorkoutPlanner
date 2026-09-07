@@ -367,6 +367,28 @@
         render();
       } catch (error) { list.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`; }
     }
+
+    async function loadExerciseForm() {
+      const form = $("#exercise-form");
+      if (!form || $("#exercise-manager-list")) return;
+      const message = $("#exercise-form-message");
+      const equipment = await api("/api/equipment").catch(() => []);
+      $("#exercise-equipment-options").innerHTML = equipment.map((item) =>
+        `<label class="check-item"><input type="checkbox" name="manager-equipment" value="${escapeHtml(item)}"> ${escapeHtml(labelCase(item))}</label>`
+      ).join("");
+      $$('input[name="manager-equipment"]').forEach((input) => input.addEventListener("change", () => {
+        if (input.checked) $$('input[name="manager-equipment"]').filter((item) => item !== input).forEach((item) => { item.checked = false; });
+      }));
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const selected = $$('input[name="manager-equipment"]:checked').map((input) => input.value);
+        const payload = { name: $("#exercise-name").value, body_part: $("#exercise-body-part").value, type: $("#exercise-type").value, equipment: selected, description: $("#exercise-description").value };
+        try {
+          await api("/api/exercises", { method: "POST", body: JSON.stringify(payload) });
+          message.textContent = "Exercise added to the catalog."; message.className = "form-message success"; form.reset();
+        } catch (error) { message.textContent = error.message; }
+      });
+    }
     ["manager-search", "manager-body-part", "manager-type", "manager-equipment"].forEach((id) => $(`#${id}`).addEventListener("input", render));
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -385,7 +407,6 @@
       } catch (error) { showMessage(error.message); }
     });
     $("#refresh-exercises").addEventListener("click", refresh);
-    $("#show-workout-editor").addEventListener("click", () => { $("#workout-editor").hidden = false; $("#show-workout-editor").hidden = true; });
     refresh();
   }
 
@@ -394,5 +415,5 @@
   if (page === "catalog") loadCatalog();
   if (page === "exercises") loadExercises();
   if (page === "programs") loadPrograms();
-  if (page === "admin") { loadExerciseManager(); loadAdmin(); }
+  if (page === "admin") { loadExerciseManager(); loadExerciseForm(); loadAdmin(); }
 }());

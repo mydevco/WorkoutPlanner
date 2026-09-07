@@ -95,7 +95,7 @@ failures return a user-safe error without breaking the catalog or admin CRUD.
 - Full-body, leg day, upper body, core, and hybrid focus areas.
 - Browser admin at `/admin` plus parameterized JSON CRUD at
   `/api/workouts`.
-- Manage Workout includes a searchable/filterable exercise catalog manager and
+- Manage Catalog includes a searchable/filterable exercise catalog manager and
   local exercise creation with zero-or-one allowed equipment validation.
 - Print-friendly catalog and program views (`Print catalog` / `Print program`
   hide controls and decorative icons).

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Add exercise — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero admin-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">Catalog editor</p><h1>Add an<br><em>exercise.</em></h1></div>
+    <p>Create a reusable movement for the catalog and local custom-plan builder. Body part is optional; equipment is optional or one allowed item.</p>
+  </div>
+</section>
+<section class="section exercise-form-section">
+  <div class="container">
+    <div class="admin-panel exercise-form-wide">
+      <div class="panel-heading"><div><p class="eyebrow">New movement</p><h2>Exercise details</h2></div><a class="button button-small button-light no-print" href="{{ url_for('admin') }}">Back to catalog</a></div>
+      <div id="exercise-form-message" class="form-message" role="status" aria-live="polite"></div>
+      <form id="exercise-form" class="exercise-form-grid" novalidate>
+        <label>Name<input id="exercise-name" required minlength="3" maxlength="100" placeholder="e.g. Cable-free curl"></label>
+        <label>Body part <span class="optional">(optional)</span><input id="exercise-body-part" maxlength="50" placeholder="e.g. Biceps"></label>
+        <label>Category/type<select id="exercise-type" required><option value="">Choose type</option><option>Main work</option><option>Dynamic warm-up</option><option>Static cooldown</option></select></label>
+        <fieldset><legend>Equipment (0 or 1)</legend><div id="exercise-equipment-options" class="check-grid"></div><small class="field-help">Leave empty for bodyweight. Multiple choices are rejected.</small></fieldset>
+        <label class="wide-field">Instructions / description<textarea id="exercise-description" required minlength="10" maxlength="500" rows="6" placeholder="Explain the movement in one or two lines."></textarea></label>
+        <button class="button button-primary wide-field" type="submit">Add exercise <span aria-hidden="true">↗</span></button>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

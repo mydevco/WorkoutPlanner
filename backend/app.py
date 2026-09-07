@@ -435,6 +435,11 @@ def create_app(test_config: dict | None = None) -> Flask:
     def admin():
         return render_template("admin.html", page="admin")
 
+    @app.get("/exercises/new")
+    @admin_required
+    def new_exercise():
+        return render_template("exercise_form.html", page="admin")
+
     @app.get("/login")
     def login():
         return render_template("login.html", page="login", providers=oauth_providers(app))
@@ -807,8 +812,8 @@ def validate_exercise(payload: dict) -> tuple[list[str], dict]:
     if not 3 <= len(name) <= 100:
         errors.append("Name must be between 3 and 100 characters.")
     body_part = str(payload.get("body_part", "")).strip()
-    if not 2 <= len(body_part) <= 50:
-        errors.append("Body part must be between 2 and 50 characters.")
+    if body_part and not 1 <= len(body_part) <= 50:
+        errors.append("Body part must be 50 characters or fewer.")
     exercise_type = payload.get("type")
     if exercise_type not in {"Main work", "Dynamic warm-up", "Static cooldown"}:
         errors.append("Choose Main work, Dynamic warm-up, or Static cooldown.")

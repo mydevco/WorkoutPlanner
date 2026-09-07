@@ -27,7 +27,7 @@
         <a class="{{ 'active' if page == 'exercises' else '' }}" href="{{ url_for('exercises') }}">Exercises</a>
         <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}">Programs</a>
         <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}#program-builder">Create plan</a>
-        <a class="nav-admin {{ 'active' if page == 'admin' else '' }}" href="{{ url_for('admin') }}">Manage Workout</a>
+        <a class="nav-admin {{ 'active' if page == 'admin' else '' }}" href="{{ url_for('admin') }}">Manage Catalog</a>
         {% if current_user %}
           <form class="nav-auth no-print" method="post" action="{{ url_for('logout') }}"><span>{{ current_user.name or current_user.email }}</span><button type="submit">Log out</button></form>
         {% elif oauth_providers %}
