@@ -31,10 +31,15 @@ class ForgeApiSmokeTest(unittest.TestCase):
         page = self.client.get("/programs").get_data(as_text=True)
         for marker in ("#program-30", "#program-45", "#program-60", "#program-builder", "program-focus-filter", "builder-program", "builder-items"):
             self.assertIn(marker, page)
+        self.assertIn("builder-name", page)
+        self.assertIn("data-filter=\"type:Dynamic warm-up\"", page)
+        self.assertIn("data-filter=\"type:Static cooldown\"", page)
+        self.assertIn("Create plan", self.client.get("/").get_data(as_text=True))
+        self.assertIn('maxlength="80"', page)
         js_response = self.client.get("/static/js/app.js")
         js = js_response.get_data(as_text=True)
         js_response.close()
-        for marker in ("localStorage", "data-add", "data-up", "data-down", "builder-print"):
+        for marker in ("localStorage", "data-add", "data-up", "data-down", "builder-print", "validateName", "activeFilter"):
             self.assertIn(marker, js)
         css_response = self.client.get("/static/css/styles.css")
         css = css_response.get_data(as_text=True)
