@@ -49,6 +49,25 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertTrue(all(set(item["equipment"]) <= set(self.client.get("/api/equipment").get_json()) for item in exercises))
         self.assertEqual(len(EXERCISE_METADATA), len(seeded_names))
 
+    def test_exercise_catalog_includes_new_workout_rows_with_fallback_details(self):
+        payload = {
+            "title": "New movement row",
+            "category": "hybrid",
+            "duration": 30,
+            "program": "30-minute",
+            "equipment": ["bodyweight"],
+            "description": "A current workout row used to verify catalog derivation.",
+            "exercises": [{"name": "New floor press", "sets": 3, "reps": "8", "rest": "45 sec"}],
+        }
+        self.assertEqual(self.client.post("/api/workouts", json=payload).status_code, 201)
+        exercises = self.client.get("/api/exercises").get_json()
+        new_exercise = next(item for item in exercises if item["name"] == "New floor press")
+        self.assertTrue(new_exercise["description"])
+        self.assertEqual(new_exercise["usage"][0]["workout"], "New movement row")
+        workout = self.client.get("/api/workouts").get_json()
+        new_workout = next(item for item in workout if item["title"] == "New movement row")
+        self.assertIn("instruction", new_workout["exercises"][0])
+
     def test_exercise_catalog_filters_by_body_part_and_equipment(self):
         response = self.client.get("/api/exercises?body_part=Core&equipment=ab+roller")
         self.assertEqual(response.status_code, 200)
@@ -67,6 +86,15 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertIn("@media print", css)
         self.assertIn(".site-header", css)
         self.assertIn(".exercise-card", css)
+        self.assertIn("display: table-header-group", css)
+        catalog = self.client.get("/catalog").get_data(as_text=True)
+        programs = self.client.get("/programs").get_data(as_text=True)
+        js_response = self.client.get("/static/js/app.js")
+        js = js_response.get_data(as_text=True)
+        js_response.close()
+        self.assertIn("workout-details", js)
+        self.assertIn("Print catalog", catalog)
+        self.assertIn("Print programs", programs)
 
     def test_gemini_disabled_and_message_validation(self):
         self.assertEqual(self.client.get("/api/chat/status").get_json(), {"configured": False})

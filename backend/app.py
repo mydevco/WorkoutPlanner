@@ -514,17 +514,30 @@ def get_workout_catalog() -> dict:
 def get_exercise_catalog() -> list[dict]:
     database = get_db()
     equipment_by_exercise: dict[str, set[str]] = {}
-    for row in database.execute("SELECT equipment, exercises FROM workouts").fetchall():
+    usage_by_exercise: dict[str, list[dict]] = {}
+    for row in database.execute("SELECT title, equipment, exercises FROM workouts").fetchall():
         try:
             equipment = json.loads(row["equipment"])
             exercises = json.loads(row["exercises"])
         except (TypeError, json.JSONDecodeError):
             continue
+        if not isinstance(equipment, list) or not isinstance(exercises, list):
+            continue
         for exercise in exercises:
+            if not isinstance(exercise, dict):
+                continue
             name = str(exercise.get("name", "")).strip()
             if name:
                 equipment_by_exercise.setdefault(name, set()).update(
                     item for item in equipment if item in ALLOWED_EQUIPMENT
+                )
+                usage_by_exercise.setdefault(name, []).append(
+                    {
+                        "workout": row["title"],
+                        "sets": str(exercise.get("sets", "")).strip(),
+                        "reps": str(exercise.get("reps", "")).strip(),
+                        "rest": str(exercise.get("rest", "")).strip(),
+                    }
                 )
     catalog = []
     for name in sorted(equipment_by_exercise, key=str.casefold):
@@ -538,6 +551,7 @@ def get_exercise_catalog() -> list[dict]:
                 "body_part": body_part,
                 "description": description,
                 "equipment": sorted(equipment_by_exercise[name], key=str.casefold),
+                "usage": usage_by_exercise.get(name, []),
             }
         )
     return catalog
@@ -703,6 +717,13 @@ def serialize_workout(row: sqlite3.Row | dict) -> dict:
             data[key] = json.loads(data[key]) if isinstance(data[key], str) else data[key]
         except (TypeError, json.JSONDecodeError):
             data[key] = []
+    for exercise in data.get("exercises", []):
+        if isinstance(exercise, dict):
+            name = str(exercise.get("name", "")).strip()
+            exercise["instruction"] = EXERCISE_METADATA.get(
+                name,
+                ("Full body", "Move with control through a comfortable range and keep your trunk braced."),
+            )[1]
     return data
 
 
