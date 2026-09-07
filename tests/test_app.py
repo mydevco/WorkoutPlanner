@@ -46,8 +46,15 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertEqual(names, seeded_names)
         self.assertTrue(all(item["description"] for item in exercises))
         self.assertTrue(all(item["body_part"] for item in exercises))
+        self.assertTrue(all(isinstance(item["equipment"], list) for item in exercises))
+        self.assertTrue(all(isinstance(item["usage"], list) for item in exercises))
         self.assertTrue(all(set(item["equipment"]) <= set(self.client.get("/api/equipment").get_json()) for item in exercises))
         self.assertEqual(len(EXERCISE_METADATA), len(seeded_names))
+        js_response = self.client.get("/static/js/app.js")
+        js = js_response.get_data(as_text=True)
+        js_response.close()
+        self.assertIn("const listOrEmpty", js)
+        self.assertIn("listOrEmpty(exercise.usage)", js)
 
     def test_exercise_catalog_includes_new_workout_rows_with_fallback_details(self):
         payload = {

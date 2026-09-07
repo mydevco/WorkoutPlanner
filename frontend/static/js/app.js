@@ -5,6 +5,7 @@
   const page = document.body.dataset.page;
   const $ = (selector, root = document) => root.querySelector(selector);
   const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const listOrEmpty = (value) => Array.isArray(value) ? value : [];
   const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#039;"
   }[char]));
@@ -18,8 +19,8 @@
   }
 
   function workoutCard(workout, compact = false) {
-    const tags = (workout.equipment || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
-    const exerciseRows = (workout.exercises || []).map((exercise) => `<tr>
+    const tags = listOrEmpty(workout.equipment).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    const exerciseRows = listOrEmpty(workout.exercises).map((exercise) => `<tr>
       <td>${escapeHtml(exercise.name)}</td>
       <td>${escapeHtml(exercise.sets || "—")}</td>
       <td>${escapeHtml(exercise.reps || "—")}</td>
@@ -32,7 +33,7 @@
       <p>${escapeHtml(workout.description)}</p>
       <table class="workout-details"><thead><tr><th>Exercise</th><th>Sets</th><th>Reps/time</th><th>Rest</th><th>How to perform</th></tr></thead><tbody>${exerciseRows}</tbody></table>
       <ul class="tag-list" aria-label="Equipment">${tags}</ul>
-      ${compact ? "" : `<div class="card-actions">${workout.video_url ? `<a class="video-link" href="${escapeHtml(workout.video_url)}" target="_blank" rel="noopener noreferrer">Watch movement ↗</a>` : "<span></span>"}<span class="details-link">${(workout.exercises || []).length} exercises</span></div>`}
+      ${compact ? "" : `<div class="card-actions">${workout.video_url ? `<a class="video-link" href="${escapeHtml(workout.video_url)}" target="_blank" rel="noopener noreferrer">Watch movement ↗</a>` : "<span></span>"}<span class="details-link">${listOrEmpty(workout.exercises).length} exercises</span></div>`}
     </article>`;
   }
 
@@ -142,9 +143,9 @@
           <h2>${escapeHtml(exercise.name)}</h2>
           <p>${escapeHtml(exercise.description)}</p>
           <table class="exercise-usage"><thead><tr><th>Used in</th><th>Sets</th><th>Reps/time</th><th>Rest</th></tr></thead><tbody>
-            ${exercise.usage.map((use) => `<tr><td>${escapeHtml(use.workout)}</td><td>${escapeHtml(use.sets || "—")}</td><td>${escapeHtml(use.reps || "—")}</td><td>${escapeHtml(use.rest || "—")}</td></tr>`).join("")}
+            ${listOrEmpty(exercise.usage).map((use) => `<tr><td>${escapeHtml(use.workout)}</td><td>${escapeHtml(use.sets || "—")}</td><td>${escapeHtml(use.reps || "—")}</td><td>${escapeHtml(use.rest || "—")}</td></tr>`).join("")}
           </tbody></table>
-          <ul class="tag-list" aria-label="Equipment">${exercise.equipment.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+          <ul class="tag-list" aria-label="Equipment">${listOrEmpty(exercise.equipment).map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
         </article>`).join("")}</div>
       </section>`).join("") || "<p class='empty-state'>No exercises match those filters.</p>";
     }
@@ -176,7 +177,7 @@
           <div><div class="program-name"><span class="program-index">0${index + 1}</span><h2>${escapeHtml(program.name)}</h2></div><p>${escapeHtml(program.description)}</p></div>
           <button class="button button-small button-light no-print print-program" type="button">Print program</button>
         </div>
-        <div class="program-workouts">${program.workouts.length ? program.workouts.map((workout) => workoutCard(workout, true)).join("") : "<p>No sessions yet.</p>"}</div>
+        <div class="program-workouts">${listOrEmpty(program.workouts).length ? listOrEmpty(program.workouts).map((workout) => workoutCard(workout, true)).join("") : "<p>No sessions yet.</p>"}</div>
       </section>`).join("");
       $$(".print-program").forEach((button) => button.addEventListener("click", () => window.print()));
     } catch (error) {
