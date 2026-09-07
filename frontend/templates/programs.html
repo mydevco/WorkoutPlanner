@@ -9,8 +9,33 @@
 </section>
 <section class="section programs-section">
   <div class="container">
-    <div class="program-toolbar no-print"><p id="program-count" class="results-meta">Loading programs…</p><button class="button button-small button-dark print-trigger" type="button">Print programs</button></div>
+    <nav class="program-nav no-print" aria-label="Program shortcuts">
+      <a href="#program-30">30 min</a><a href="#program-45">45 min</a><a href="#program-60">60 min</a>
+      <a href="#program-builder">Create a program</a>
+    </nav>
+    <div class="program-toolbar no-print">
+      <p id="program-count" class="results-meta">Loading programs…</p>
+      <div class="program-actions"><label><span class="sr-only">Filter program focus</span><select id="program-focus-filter"><option value="">All focuses</option><option value="full-body">Full-body</option><option value="leg day">Leg day</option><option value="upper body">Upper body</option><option value="core">Core</option><option value="hybrid">Hybrid</option></select></label><button class="button button-small button-dark print-trigger" type="button">Print programs</button></div>
+    </div>
     <div id="program-list" class="program-list" aria-live="polite"><p class="loading">Loading programs…</p></div>
+  </div>
+</section>
+<section id="program-builder" class="section builder-section">
+  <div class="container">
+    <div class="section-heading"><div><p class="eyebrow">Local-first builder</p><h2>Make it<br><em>yours.</em></h2></div><p class="builder-note">Drafts stay in this browser. Drag an exercise, or use Add and the keyboard controls when dragging is unavailable.</p></div>
+    <div class="builder-layout">
+      <aside class="builder-panel exercise-picker">
+        <label>Starting program<select id="builder-program"></select></label>
+        <label>Find an exercise<input id="builder-search" type="search" placeholder="Search exercises" autocomplete="off"></label>
+        <div id="builder-exercise-list" class="builder-exercise-list" aria-live="polite"></div>
+      </aside>
+      <section class="builder-panel">
+        <div class="builder-heading"><div><p class="eyebrow">Your draft</p><h3 id="builder-title">Custom session</h3></div><div><button id="builder-print" class="button button-small button-light" type="button">Print draft</button><button id="builder-clear" class="button button-small button-light" type="button">Clear</button></div></div>
+        <p id="builder-status" class="form-message" role="status" aria-live="polite"></p>
+        <ol id="builder-items" class="builder-items" aria-label="Draft exercise order"></ol>
+        <p id="builder-empty" class="loading">Add exercises to build your session.</p>
+      </section>
+    </div>
   </div>
 </section>
 {% endblock %}

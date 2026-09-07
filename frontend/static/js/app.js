@@ -173,7 +173,7 @@
     try {
       const programs = await api("/api/programs");
       $("#program-count").textContent = `${programs.length} time-boxed programs`;
-      target.innerHTML = programs.map((program, index) => `<section class="program-block">
+      target.innerHTML = programs.map((program, index) => `<section ${index === 0 || programs[index - 1].duration !== program.duration ? `id="program-${escapeHtml(program.duration)}"` : ""} class="program-block" data-focus="${escapeHtml(program.focus)}">
         <div class="program-block-head">
           <div><div class="program-name"><span class="program-index">0${index + 1}</span><h2>${escapeHtml(program.name)}</h2></div><p>${escapeHtml(program.description)}</p></div>
           <button class="button button-small button-light no-print print-program" type="button">Print program</button>
@@ -181,8 +181,75 @@
         <div class="program-workouts">${listOrEmpty(program.workouts).length ? listOrEmpty(program.workouts).map((workout) => workoutCard(workout, true)).join("") : "<p>No sessions yet.</p>"}</div>
       </section>`).join("");
       $$(".print-program").forEach((button) => button.addEventListener("click", () => window.print()));
+      const focus = $("#program-focus-filter");
+      focus.addEventListener("change", () => $$(".program-block", target).forEach((block) => {
+        block.hidden = Boolean(focus.value && block.dataset.focus !== focus.value);
+      }));
+      wireBuilder(programs, await api("/api/exercises"));
     } catch (error) {
       target.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
+    }
+
+    function wireBuilder(programs, exercises) {
+      const list = $("#builder-items");
+      const picker = $("#builder-exercise-list");
+      if (!list || !picker) return;
+      const storageKey = "forge-program-draft-v1";
+      const programSelect = $("#builder-program");
+      const search = $("#builder-search");
+      let draft;
+      try { draft = JSON.parse(localStorage.getItem(storageKey) || "null"); } catch (_) { draft = null; }
+      draft = draft && Array.isArray(draft.items) ? draft : { program: programs[0]?.slug || "", items: [] };
+      programSelect.innerHTML = programs.map((program) => `<option value="${escapeHtml(program.slug)}">${escapeHtml(program.name)}</option>`).join("");
+      programSelect.value = draft.program || programs[0]?.slug || "";
+      const save = () => { try { localStorage.setItem(storageKey, JSON.stringify(draft)); } catch (_) { announce("Draft is active for this session; browser storage is unavailable."); } };
+      const announce = (message) => { $("#builder-status").textContent = message; };
+      const renderItems = () => {
+        $("#builder-empty").hidden = draft.items.length > 0;
+        list.innerHTML = draft.items.map((item, index) => `<li class="builder-item" draggable="true" data-index="${index}">
+          <span class="drag-handle" aria-hidden="true">⠿</span><strong>${escapeHtml(item.name)}</strong>
+          <label>Sets<input data-field="sets" type="number" min="1" max="20" value="${escapeHtml(item.sets)}"></label>
+          <label>Reps/time<input data-field="reps" maxlength="30" value="${escapeHtml(item.reps)}"></label>
+          <label>Rest<input data-field="rest" maxlength="30" value="${escapeHtml(item.rest)}"></label>
+          <button class="icon-button" data-up type="button" aria-label="Move ${escapeHtml(item.name)} up">↑</button><button class="icon-button" data-down type="button" aria-label="Move ${escapeHtml(item.name)} down">↓</button><button class="icon-button" data-remove type="button" aria-label="Remove ${escapeHtml(item.name)}">×</button>
+        </li>`).join("");
+        $$("[data-field]", list).forEach((input) => input.addEventListener("input", () => {
+          draft.items[Number(input.closest(".builder-item").dataset.index)][input.dataset.field] = input.value; save();
+        }));
+        $$("[data-up]", list).forEach((button) => button.addEventListener("click", () => moveItem(button, -1)));
+        $$("[data-down]", list).forEach((button) => button.addEventListener("click", () => moveItem(button, 1)));
+        $$("[data-remove]", list).forEach((button) => button.addEventListener("click", () => {
+          draft.items.splice(Number(button.closest(".builder-item").dataset.index), 1); save(); renderItems(); announce("Exercise removed.");
+        }));
+        $$(".builder-item", list).forEach((row) => {
+          row.addEventListener("dragstart", (event) => event.dataTransfer.setData("text/plain", row.dataset.index));
+          row.addEventListener("dragover", (event) => event.preventDefault());
+          row.addEventListener("drop", (event) => {
+            event.preventDefault();
+            const from = Number(event.dataTransfer.getData("text/plain")), to = Number(row.dataset.index);
+            if (from !== to) { const [moved] = draft.items.splice(from, 1); draft.items.splice(to, 0, moved); save(); renderItems(); announce("Exercise order updated."); }
+          });
+        });
+      };
+      function moveItem(button, direction) {
+        const index = Number(button.closest(".builder-item").dataset.index), next = index + direction;
+        if (next < 0 || next >= draft.items.length) return;
+        [draft.items[index], draft.items[next]] = [draft.items[next], draft.items[index]]; save(); renderItems();
+      }
+      const renderPicker = () => {
+        const term = search.value.trim().toLowerCase();
+        picker.innerHTML = listOrEmpty(exercises).filter((exercise) => exercise.name.toLowerCase().includes(term)).map((exercise) => `<div class="picker-item"><span><strong>${escapeHtml(exercise.name)}</strong><small>${escapeHtml(exercise.body_part)} · ${escapeHtml(exercise.type || "Main work")}</small></span><button class="button button-small button-light" data-add="${escapeHtml(exercise.name)}" type="button">Add</button></div>`).join("");
+        $$("[data-add]", picker).forEach((button) => button.addEventListener("click", () => {
+          const exercise = exercises.find((item) => item.name === button.dataset.add);
+          draft.items.push({ name: exercise.name, sets: "3", reps: "10", rest: "45 sec" }); save(); renderItems(); announce(`${exercise.name} added.`);
+        }));
+      };
+      programSelect.addEventListener("change", () => { draft.program = programSelect.value; save(); $("#builder-title").textContent = `${programSelect.options[programSelect.selectedIndex].text} draft`; });
+      search.addEventListener("input", renderPicker);
+      $("#builder-clear").addEventListener("click", () => { draft.items = []; save(); renderItems(); announce("Draft cleared."); });
+      $("#builder-print").addEventListener("click", () => window.print());
+      $("#builder-title").textContent = `${programSelect.options[programSelect.selectedIndex].text} draft`;
+      renderPicker(); renderItems();
     }
   }
 

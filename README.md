@@ -87,6 +87,9 @@ failures return a user-safe error without breaking the catalog or admin CRUD.
 ## Features
 
 - Homepage, searchable workout catalog, and 30/45/60-minute programs.
+- Programs include duration anchors/focus filtering and a local-first personal
+  builder with drag/drop, keyboard reorder controls, localStorage drafts, and
+  print-friendly output.
 - Exercise catalog derived from seeded workout movements, grouped by body part
   and filterable by allowed equipment, with a print-friendly layout.
 - Full-body, leg day, upper body, core, and hybrid focus areas.
