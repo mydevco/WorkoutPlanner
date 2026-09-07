@@ -15,7 +15,7 @@
     </nav>
     <div class="program-toolbar no-print">
       <p id="program-count" class="results-meta">Loading programs…</p>
-      <div class="program-actions"><label><span class="sr-only">Filter program focus</span><select id="program-focus-filter"><option value="">All focuses</option><option value="full-body">Full-body</option><option value="leg day">Leg day</option><option value="upper body">Upper body</option><option value="core">Core</option><option value="hybrid">Hybrid</option></select></label><button class="button button-small button-dark print-trigger" type="button">Print programs</button></div>
+      <div class="program-actions"><label class="program-search"><span class="sr-only">Search programs</span><input id="program-search" type="search" placeholder="Search programs" autocomplete="off"></label><label><span class="sr-only">Filter program focus</span><select id="program-focus-filter"><option value="">All focuses</option><option value="full-body">Full-body</option><option value="leg day">Leg day</option><option value="upper body">Upper body</option><option value="core">Core</option><option value="hybrid">Hybrid</option></select></label><button id="clear-program-filters" class="button button-small button-light" type="button">Clear</button><button class="button button-small button-dark print-trigger" type="button">Print programs</button></div>
     </div>
     <div id="program-list" class="program-list" aria-live="polite"><p class="loading">Loading programs…</p></div>
   </div>

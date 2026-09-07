@@ -23,7 +23,6 @@
       </button>
       <nav id="site-nav" class="site-nav" aria-label="Primary navigation">
         <a class="{{ 'active' if page == 'home' else '' }}" href="{{ url_for('home') }}">Home</a>
-        <a class="{{ 'active' if page == 'catalog' else '' }}" href="{{ url_for('catalog') }}">Catalog</a>
         <a class="{{ 'active' if page == 'exercises' else '' }}" href="{{ url_for('exercises') }}">Exercises</a>
         <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}">Programs</a>
         <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}#program-builder">Create plan</a>

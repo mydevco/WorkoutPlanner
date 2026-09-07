@@ -27,6 +27,20 @@ class ForgeApiSmokeTest(unittest.TestCase):
             self.assertEqual(response.status_code, 200, path)
         self.assertEqual(self.client.get("/healthz").get_json()["status"], "ok")
 
+    def test_program_search_ui_and_main_navigation(self):
+        programs_page = self.client.get("/programs").get_data(as_text=True)
+        self.assertIn("program-search", programs_page)
+        self.assertIn("clear-program-filters", programs_page)
+        home = self.client.get("/").get_data(as_text=True)
+        self.assertNotIn(">Catalog</a>", home)
+        self.assertIn(">Manage Catalog</a>", home)
+        self.assertEqual(len(self.client.get("/api/programs").get_json()), 21)
+        js_response = self.client.get("/static/js/app.js")
+        js = js_response.get_data(as_text=True)
+        js_response.close()
+        self.assertIn("refreshVisibility", js)
+        self.assertIn("program-search", js)
+
     def test_manage_workout_exercise_manager_ui_and_local_crud(self):
         page = self.client.get("/admin").get_data(as_text=True)
         self.assertIn("Manage Catalog", page)
