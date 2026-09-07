@@ -481,14 +481,39 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     @app.get("/api/exercises")
     def list_exercises():
+        query = request.args.get("q", "").strip().lower()
         body_part = request.args.get("body_part", "").strip()
+        exercise_type = request.args.get("type", "").strip()
         equipment_filter = request.args.get("equipment", "").strip()
         catalog = get_exercise_catalog()
+        if query:
+            catalog = [item for item in catalog if query in item["name"].lower() or query in item["description"].lower()]
         if body_part:
             catalog = [item for item in catalog if item["body_part"] == body_part]
+        if exercise_type:
+            catalog = [item for item in catalog if item["type"] == exercise_type]
         if equipment_filter:
             catalog = [item for item in catalog if equipment_filter in item["equipment"]]
         return jsonify(catalog)
+
+    @app.post("/api/exercises")
+    @admin_required
+    def create_exercise():
+        payload = request.get_json(silent=True) or {}
+        errors, cleaned = validate_exercise(payload)
+        if errors:
+            return jsonify({"errors": errors}), 400
+        database = get_db()
+        try:
+            database.execute(
+                """INSERT INTO exercises (name, body_part, exercise_type, equipment, description)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (cleaned["name"], cleaned["body_part"], cleaned["type"], json.dumps(cleaned["equipment"]), cleaned["description"]),
+            )
+            database.commit()
+        except sqlite3.IntegrityError:
+            return jsonify({"errors": ["An exercise with that name already exists."]}), 409
+        return jsonify(next(item for item in get_exercise_catalog() if item["name"].casefold() == cleaned["name"].casefold())), 201
 
     @app.get("/api/chat/status")
     def chat_status():
@@ -685,6 +710,7 @@ def get_workout_catalog() -> dict:
 
 def get_exercise_catalog() -> list[dict]:
     database = get_db()
+    sync_exercise_records(database)
     equipment_by_exercise: dict[str, set[str]] = {}
     usage_by_exercise: dict[str, list[dict]] = {}
     for row in database.execute("SELECT title, equipment, exercises FROM workouts").fetchall():
@@ -722,19 +748,88 @@ def get_exercise_catalog() -> list[dict]:
                     }
                 )
     catalog = []
-    for name in sorted(equipment_by_exercise, key=str.casefold):
-        body_part, exercise_type, description = exercise_metadata(name)
+    rows = database.execute("SELECT name, body_part, exercise_type, equipment, description FROM exercises").fetchall()
+    for row in rows:
+        name = row["name"]
+        try:
+            stored_equipment = json.loads(row["equipment"])
+        except (TypeError, json.JSONDecodeError):
+            stored_equipment = []
+        body_part = row["body_part"]
+        exercise_type = row["exercise_type"]
+        description = row["description"]
         catalog.append(
             {
                 "name": name,
                 "body_part": body_part,
                 "type": exercise_type,
                 "description": description,
-                "equipment": sorted(equipment_by_exercise[name], key=str.casefold),
+                "equipment": sorted(set(stored_equipment) | equipment_by_exercise.get(name, set()), key=str.casefold),
                 "usage": usage_by_exercise.get(name, []),
             }
         )
-    return catalog
+    return sorted(catalog, key=lambda item: item["name"].casefold())
+
+
+def sync_exercise_records(database: sqlite3.Connection) -> None:
+    for row in database.execute("SELECT equipment, exercises FROM workouts").fetchall():
+        try:
+            workout_equipment = json.loads(row["equipment"])
+            workout_exercises = json.loads(row["exercises"])
+        except (TypeError, json.JSONDecodeError):
+            continue
+        if not isinstance(workout_equipment, list) or not isinstance(workout_exercises, list):
+            continue
+        for exercise in workout_exercises:
+            if not isinstance(exercise, dict):
+                continue
+            name = str(exercise.get("name", "")).strip()
+            if not name:
+                continue
+            body_part, exercise_type, description = exercise_metadata(name)
+            equipment = exercise.get("equipment")
+            if not isinstance(equipment, list):
+                equipment = workout_equipment if exercise_type == "Main work" else (
+                    ["bodyweight", "yoga mat"] if exercise_type == "Static cooldown" else ["bodyweight"]
+                )
+            database.execute(
+                """INSERT OR IGNORE INTO exercises
+                   (name, body_part, exercise_type, equipment, description)
+                   VALUES (?, ?, ?, ?, ?)""",
+                (name, body_part, exercise_type, json.dumps([item for item in equipment if item in ALLOWED_EQUIPMENT]), description),
+            )
+    database.commit()
+
+
+def validate_exercise(payload: dict) -> tuple[list[str], dict]:
+    errors: list[str] = []
+    name = str(payload.get("name", "")).strip()
+    if not 3 <= len(name) <= 100:
+        errors.append("Name must be between 3 and 100 characters.")
+    body_part = str(payload.get("body_part", "")).strip()
+    if not 2 <= len(body_part) <= 50:
+        errors.append("Body part must be between 2 and 50 characters.")
+    exercise_type = payload.get("type")
+    if exercise_type not in {"Main work", "Dynamic warm-up", "Static cooldown"}:
+        errors.append("Choose Main work, Dynamic warm-up, or Static cooldown.")
+    equipment = payload.get("equipment", [])
+    if not isinstance(equipment, list):
+        errors.append("Equipment must be a list with zero or one item.")
+        equipment = []
+    if len(equipment) > 1:
+        errors.append("Choose no more than one equipment type.")
+    if any(item not in ALLOWED_EQUIPMENT for item in equipment):
+        errors.append("Equipment must use an allowed equipment type.")
+    description = str(payload.get("description", "")).strip()
+    if not 10 <= len(description) <= 500:
+        errors.append("Description must be between 10 and 500 characters.")
+    return errors, {
+        "name": name,
+        "body_part": body_part,
+        "type": exercise_type,
+        "equipment": list(dict.fromkeys(equipment)),
+        "description": description,
+    }
 
 
 def exercise_metadata(name: str) -> tuple[str, str, str]:
