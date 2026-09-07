@@ -19,10 +19,18 @@
 
   function workoutCard(workout, compact = false) {
     const tags = (workout.equipment || []).map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+    const exerciseRows = (workout.exercises || []).map((exercise) => `<tr>
+      <td>${escapeHtml(exercise.name)}</td>
+      <td>${escapeHtml(exercise.sets || "—")}</td>
+      <td>${escapeHtml(exercise.reps || "—")}</td>
+      <td>${escapeHtml(exercise.rest || "—")}</td>
+      <td>${escapeHtml(exercise.instruction || "Move with control through a comfortable range.")}</td>
+    </tr>`).join("");
     return `<article class="${compact ? "program-workout" : "workout-card"}">
       <div class="card-top"><span class="badge">${escapeHtml(labelCase(workout.category))}</span><span class="duration">${escapeHtml(workout.duration)} min</span></div>
       <h3>${escapeHtml(workout.title)}</h3>
       <p>${escapeHtml(workout.description)}</p>
+      <table class="workout-details"><thead><tr><th>Exercise</th><th>Sets</th><th>Reps/time</th><th>Rest</th><th>How to perform</th></tr></thead><tbody>${exerciseRows}</tbody></table>
       <ul class="tag-list" aria-label="Equipment">${tags}</ul>
       ${compact ? "" : `<div class="card-actions">${workout.video_url ? `<a class="video-link" href="${escapeHtml(workout.video_url)}" target="_blank" rel="noopener noreferrer">Watch movement ↗</a>` : "<span></span>"}<span class="details-link">${(workout.exercises || []).length} exercises</span></div>`}
     </article>`;
@@ -107,52 +115,54 @@
       } catch (error) {
         grid.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
       }
-
-      async function loadExercises() {
-        const groups = $("#exercise-groups");
-        if (!groups) return;
-        const bodyPart = $("#body-part-filter");
-        const equipment = $("#exercise-equipment-filter");
-        let allExercises = [];
-        function optionMarkup(values, label) {
-          return `<option value="">${label}</option>${values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
-        }
-        function render(exercises) {
-          $("#exercise-count").textContent = `${exercises.length} exercise${exercises.length === 1 ? "" : "s"} found`;
-          const grouped = exercises.reduce((result, exercise) => {
-            (result[exercise.body_part] ||= []).push(exercise);
-            return result;
-          }, {});
-          groups.innerHTML = Object.entries(grouped).map(([part, items]) => `<section class="exercise-group">
-            <div class="exercise-group-heading"><p class="eyebrow">${escapeHtml(part)}</p><span>${items.length} movement${items.length === 1 ? "" : "s"}</span></div>
-            <div class="exercise-grid">${items.map((exercise) => `<article class="exercise-card">
-              <h2>${escapeHtml(exercise.name)}</h2>
-              <p>${escapeHtml(exercise.description)}</p>
-              <ul class="tag-list" aria-label="Equipment">${exercise.equipment.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
-            </article>`).join("")}</div>
-          </section>`).join("") || "<p class='empty-state'>No exercises match those filters.</p>";
-        }
-        try {
-          allExercises = await api("/api/exercises");
-          bodyPart.innerHTML = optionMarkup([...new Set(allExercises.map((item) => item.body_part))].sort(), "All body parts");
-          equipment.innerHTML = optionMarkup([...new Set(allExercises.flatMap((item) => item.equipment))].sort(), "All equipment");
-          const refresh = () => render(allExercises.filter((item) =>
-            (!bodyPart.value || item.body_part === bodyPart.value) &&
-            (!equipment.value || item.equipment.includes(equipment.value))
-          ));
-          bodyPart.addEventListener("change", refresh);
-          equipment.addEventListener("change", refresh);
-          $("#clear-exercise-filters").addEventListener("click", () => { bodyPart.value = ""; equipment.value = ""; refresh(); });
-          refresh();
-        } catch (error) {
-          groups.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
-        }
-      }
     }
     [duration, category].forEach((field) => field.addEventListener("change", refresh));
     search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(refresh, 180); });
     $("#clear-filters").addEventListener("click", () => { search.value = ""; duration.value = ""; category.value = ""; refresh(); });
     refresh();
+  }
+
+  async function loadExercises() {
+    const groups = $("#exercise-groups");
+    if (!groups) return;
+    const bodyPart = $("#body-part-filter");
+    const equipment = $("#exercise-equipment-filter");
+    let allExercises = [];
+    const optionMarkup = (values, label) =>
+      `<option value="">${label}</option>${values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
+    function render(exercises) {
+      $("#exercise-count").textContent = `${exercises.length} exercise${exercises.length === 1 ? "" : "s"} found`;
+      const grouped = exercises.reduce((result, exercise) => {
+        (result[exercise.body_part] ||= []).push(exercise);
+        return result;
+      }, {});
+      groups.innerHTML = Object.entries(grouped).map(([part, items]) => `<section class="exercise-group">
+        <div class="exercise-group-heading"><p class="eyebrow">${escapeHtml(part)}</p><span>${items.length} movement${items.length === 1 ? "" : "s"}</span></div>
+        <div class="exercise-grid">${items.map((exercise) => `<article class="exercise-card">
+          <h2>${escapeHtml(exercise.name)}</h2>
+          <p>${escapeHtml(exercise.description)}</p>
+          <table class="exercise-usage"><thead><tr><th>Used in</th><th>Sets</th><th>Reps/time</th><th>Rest</th></tr></thead><tbody>
+            ${exercise.usage.map((use) => `<tr><td>${escapeHtml(use.workout)}</td><td>${escapeHtml(use.sets || "—")}</td><td>${escapeHtml(use.reps || "—")}</td><td>${escapeHtml(use.rest || "—")}</td></tr>`).join("")}
+          </tbody></table>
+          <ul class="tag-list" aria-label="Equipment">${exercise.equipment.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+        </article>`).join("")}</div>
+      </section>`).join("") || "<p class='empty-state'>No exercises match those filters.</p>";
+    }
+    try {
+      allExercises = await api("/api/exercises");
+      bodyPart.innerHTML = optionMarkup([...new Set(allExercises.map((item) => item.body_part))].sort(), "All body parts");
+      equipment.innerHTML = optionMarkup([...new Set(allExercises.flatMap((item) => item.equipment))].sort(), "All equipment");
+      const refresh = () => render(allExercises.filter((item) =>
+        (!bodyPart.value || item.body_part === bodyPart.value) &&
+        (!equipment.value || item.equipment.includes(equipment.value))
+      ));
+      bodyPart.addEventListener("change", refresh);
+      equipment.addEventListener("change", refresh);
+      $("#clear-exercise-filters").addEventListener("click", () => { bodyPart.value = ""; equipment.value = ""; refresh(); });
+      refresh();
+    } catch (error) {
+      groups.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
+    }
   }
 
   async function loadPrograms() {

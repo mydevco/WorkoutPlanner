@@ -78,6 +78,9 @@ em { font-family: var(--serif); font-weight: 400; letter-spacing: -.08em; }
 .duration { font: 500 12px "DM Mono", monospace; background: var(--lime); padding: 6px 8px; white-space: nowrap; }
 .workout-card h3 { margin-bottom: 11px; }
 .workout-card > p { color: var(--muted); font-size: 14px; margin-bottom: 23px; }
+.workout-details, .exercise-usage { width: 100%; border-collapse: collapse; font-size: 11px; margin: 0 0 17px; }
+.workout-details th, .workout-details td, .exercise-usage th, .exercise-usage td { border-bottom: 1px solid var(--line); padding: 6px 5px; text-align: left; vertical-align: top; }
+.workout-details th, .exercise-usage th { color: var(--muted); font: 10px "DM Mono", monospace; text-transform: uppercase; white-space: nowrap; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; padding: 0; margin: auto 0 0; }
 .tag-list li { padding: 4px 7px; color: #697169; border: 1px solid var(--line); font: 10px "DM Mono", monospace; }
 .card-actions { margin-top: 21px; display: flex; justify-content: space-between; gap: 12px; align-items: center; }
@@ -118,6 +121,8 @@ em { font-family: var(--serif); font-weight: 400; letter-spacing: -.08em; }
 .exercise-card h2 { font-size: 25px; margin: 0 0 12px; letter-spacing: -.04em; }
 .exercise-card p { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
 .exercise-card .tag-list { margin-top: auto; }
+.exercise-usage { margin-bottom: 14px; }
+.exercise-usage td:first-child { min-width: 115px; }
 .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
 .toolbar label, .toolbar select, .toolbar input { font: 13px "Space Grotesk", sans-serif; }
 .toolbar select, .search-field { background: #fff; border: 1px solid var(--line); min-height: 42px; }
@@ -215,22 +220,27 @@ legend { font-size: 12px; font-weight: 600; padding: 0 5px; }
   body { background: #fff; color: #000; font: 11pt Arial, sans-serif; }
   .site-header, .site-footer, .no-print, .print-trigger, button, .hero-art, .card-actions, .admin-layout, .toolbar, .program-toolbar, .eyebrow { display: none !important; }
   .container { width: 100%; }
-  .page-hero { padding: 0 0 20px; background: #fff; border-bottom: 2px solid #000; }
+  .page-hero { padding: 0 0 10px; background: #fff; border-bottom: 2px solid #000; }
   .page-hero h1 { font: 34pt Georgia, serif; letter-spacing: 0; }
   .page-hero-inner { display: block; }
-  .page-hero-inner > p { max-width: none; margin-top: 10px; }
-  .section, .catalog-section { padding: 20px 0; }
-  .workout-grid, .program-workouts { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .exercise-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .workout-card, .program-workout { border: 1px solid #bbb; padding: 14px; min-height: auto; break-inside: avoid; }
+  .page-hero-inner > p { display: none; }
+  .section, .catalog-section, .exercise-section { padding: 10px 0; }
+  .workout-grid, .program-workouts, .exercise-grid { display: block; }
+  .workout-card, .program-workout, .exercise-card { border: 0; border-bottom: 1px solid #999; padding: 7px 0; min-height: auto; break-inside: avoid; }
   .workout-card h3, .program-workout h3 { font-size: 15pt; }
-  .tag-list li { border-color: #aaa; }
-  .program-list { gap: 24px; }
-  .exercise-groups { gap: 24px; }
-  .exercise-card { break-inside: avoid; min-height: auto; }
+  .workout-details, .exercise-usage { page-break-inside: auto; margin: 4px 0; font-size: 9pt; }
+  .workout-details thead, .exercise-usage thead { display: table-header-group; }
+  .workout-details tr, .exercise-usage tr { break-inside: avoid; }
+  .workout-details th, .workout-details td, .exercise-usage th, .exercise-usage td { padding: 3px 4px; border-color: #aaa; }
+  .tag-list li { border-color: #aaa; padding: 2px 4px; }
+  .program-list, .exercise-groups { gap: 0; }
+  .exercise-group { border-top: 0; padding-top: 0; }
+  .exercise-group-heading { margin: 9px 0 2px; }
+  .exercise-card h2 { font-size: 13pt; margin-bottom: 4px; }
+  .exercise-card p { margin-bottom: 5px; }
   .program-block { break-inside: avoid; }
   .program-block h2 { font-size: 22pt; letter-spacing: 0; }
-  .program-block-head { display: block; }
-  .program-block-head p { max-width: none; }
+  .program-block-head { display: block; margin-bottom: 5px; }
+  .program-block-head p { display: none; }
   a { text-decoration: none; }
 }
