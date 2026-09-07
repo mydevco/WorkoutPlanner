@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch
 from pathlib import Path
 
-from backend.app import GeminiError, create_app
+from backend.app import EXERCISE_METADATA, GeminiError, SEED_WORKOUTS, create_app
 
 
 TEST_DATABASE = Path(__file__).with_name("smoke.sqlite")
@@ -20,7 +20,7 @@ class ForgeApiSmokeTest(unittest.TestCase):
             TEST_DATABASE.unlink()
 
     def test_pages_and_healthcheck(self):
-        for path in ("/", "/catalog", "/programs", "/admin", "/login"):
+        for path in ("/", "/catalog", "/exercises", "/programs", "/admin", "/login"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 200, path)
         self.assertEqual(self.client.get("/healthz").get_json()["status"], "ok")
@@ -36,6 +36,37 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertTrue(workouts)
         self.assertTrue(all(item["duration"] == 30 for item in workouts))
         self.assertEqual(len(self.client.get("/api/equipment").get_json()), 19)
+
+    def test_exercise_catalog_covers_seeded_exercises_with_descriptions(self):
+        response = self.client.get("/api/exercises")
+        self.assertEqual(response.status_code, 200)
+        exercises = response.get_json()
+        names = {item["name"] for item in exercises}
+        seeded_names = {exercise["name"] for workout in SEED_WORKOUTS for exercise in workout["exercises"]}
+        self.assertEqual(names, seeded_names)
+        self.assertTrue(all(item["description"] for item in exercises))
+        self.assertTrue(all(item["body_part"] for item in exercises))
+        self.assertTrue(all(set(item["equipment"]) <= set(self.client.get("/api/equipment").get_json()) for item in exercises))
+        self.assertEqual(len(EXERCISE_METADATA), len(seeded_names))
+
+    def test_exercise_catalog_filters_by_body_part_and_equipment(self):
+        response = self.client.get("/api/exercises?body_part=Core&equipment=ab+roller")
+        self.assertEqual(response.status_code, 200)
+        exercises = response.get_json()
+        self.assertTrue(exercises)
+        self.assertTrue(all(item["body_part"] == "Core" for item in exercises))
+        self.assertTrue(all("ab roller" in item["equipment"] for item in exercises))
+
+    def test_exercise_page_has_print_controls_and_print_css(self):
+        page = self.client.get("/exercises").get_data(as_text=True)
+        self.assertIn("Print exercises", page)
+        self.assertIn("body-part-filter", page)
+        css_response = self.client.get("/static/css/styles.css")
+        css = css_response.get_data(as_text=True)
+        css_response.close()
+        self.assertIn("@media print", css)
+        self.assertIn(".site-header", css)
+        self.assertIn(".exercise-card", css)
 
     def test_gemini_disabled_and_message_validation(self):
         self.assertEqual(self.client.get("/api/chat/status").get_json(), {"configured": False})
