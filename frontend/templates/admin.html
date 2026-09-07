@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Manage workouts — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero admin-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">Admin workspace</p><h1>Shape the<br><em>library.</em></h1></div>
+    <p>Add, edit, and remove workouts through the browser. Changes are saved to the SQLite database through the JSON API.</p>
+  </div>
+</section>
+<section class="section admin-section">
+  <div class="container admin-layout">
+    <div class="admin-panel form-panel">
+      <div class="panel-heading"><div><p class="eyebrow">Workout editor</p><h2 id="form-heading">Add a workout</h2></div><button id="cancel-edit" class="icon-button" type="button" hidden aria-label="Cancel editing">×</button></div>
+      <div id="form-message" class="form-message" role="status" aria-live="polite"></div>
+      <form id="workout-form" novalidate>
+        <input id="workout-id" type="hidden">
+        <div class="form-row"><label>Title<input id="title" name="title" required minlength="3" maxlength="100" placeholder="e.g. Morning engine"></label><label>Focus<select id="category" name="category" required><option value="">Choose focus</option><option value="full-body">Full-body</option><option value="leg day">Leg day</option><option value="upper body">Upper body</option><option value="core">Core</option><option value="hybrid">Hybrid</option></select></label></div>
+        <div class="form-row"><label>Duration<select id="duration" name="duration" required><option value="">Choose time</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="60">60 minutes</option></select></label><label>Program<select id="program" name="program" required><option value="">Choose program</option><option value="30-minute">30-minute charge</option><option value="45-minute">45-minute build</option><option value="60-minute">60-minute forge</option></select></label></div>
+        <fieldset><legend>Equipment</legend><div id="equipment-options" class="check-grid"></div></fieldset>
+        <label>Description<textarea id="description" name="description" rows="3" minlength="10" maxlength="500" required placeholder="What is this session designed to do?"></textarea></label>
+        <label>Video link <span class="optional">(optional)</span><input id="video-url" name="video_url" type="url" placeholder="https://www.youtube.com/watch?v=…"></label>
+        <label>Exercises <span class="optional">JSON list</span><textarea id="exercises" name="exercises" rows="7" required aria-describedby="exercise-help" placeholder='[{"name":"Goblet squat","sets":3,"reps":"10","rest":"45 sec"}]'></textarea><small id="exercise-help" class="field-help">Use a JSON array. Each item needs a name; sets, reps, and rest are optional.</small></label>
+        <button class="button button-primary full-button" type="submit"><span id="submit-label">Save workout</span> <span aria-hidden="true">↗</span></button>
+      </form>
+    </div>
+    <div class="admin-panel list-panel">
+      <div class="panel-heading"><div><p class="eyebrow">Current library</p><h2>Workouts <span id="admin-count"></span></h2></div><button id="refresh-workouts" class="icon-button no-print" type="button" aria-label="Refresh workouts">↻</button></div>
+      <div id="admin-list" class="admin-list" aria-live="polite"><p class="loading">Loading workouts…</p></div>
+    </div>
+  </div>
+</section>
+{% endblock %}

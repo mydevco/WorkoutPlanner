@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Admin sign in — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero admin-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">Private workspace</p><h1>Sign<br><em>in.</em></h1></div>
+    <p>Use your configured identity provider to manage workouts. The public catalog, programs, and health check remain available without signing in.</p>
+  </div>
+</section>
+<section class="section auth-section">
+  <div class="container auth-card">
+    <p class="eyebrow">Choose a provider</p>
+    {% for provider in providers %}
+      <a class="button button-dark full-button" href="{{ url_for('login_provider', provider=provider) }}">Continue with {{ provider|capitalize }}</a>
+    {% endfor %}
+    {% if not providers %}<p class="loading">OAuth is not configured. Set provider credentials to enable admin sign-in.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}
