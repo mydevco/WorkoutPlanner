@@ -25,8 +25,17 @@
     <div class="section-heading"><div><p class="eyebrow">Local-first builder</p><h2>Make it<br><em>yours.</em></h2></div><p class="builder-note">Drafts stay in this browser. Drag an exercise, or use Add and the keyboard controls when dragging is unavailable.</p></div>
     <div class="builder-layout">
       <aside class="builder-panel exercise-picker">
+        <label>Plan name<input id="builder-name" type="text" maxlength="80" required placeholder="e.g. Saturday strength"></label>
         <label>Starting program<select id="builder-program"></select></label>
-        <label>Find an exercise<input id="builder-search" type="search" placeholder="Search exercises" autocomplete="off"></label>
+        <label>Find an exercise<input id="builder-search" type="search" placeholder="Type to filter exercises" autocomplete="off"></label>
+        <div class="builder-chips" role="group" aria-label="Exercise shortcuts">
+          <button class="chip active" data-filter="" type="button">All</button>
+          <button class="chip" data-filter="body:Abs" type="button">Abs</button>
+          <button class="chip" data-filter="body:Biceps" type="button">Biceps</button>
+          <button class="chip" data-filter="body:Triceps" type="button">Triceps</button>
+          <button class="chip" data-filter="type:Dynamic warm-up" type="button">Warm-up</button>
+          <button class="chip" data-filter="type:Static cooldown" type="button">Static stretch</button>
+        </div>
         <div id="builder-exercise-list" class="builder-exercise-list" aria-live="polite"></div>
       </aside>
       <section class="builder-panel">

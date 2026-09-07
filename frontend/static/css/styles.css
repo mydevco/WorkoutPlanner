@@ -160,6 +160,10 @@ em { font-family: var(--serif); font-weight: 400; letter-spacing: -.08em; }
 .builder-heading h3 { margin: 0; }
 .builder-heading .button + .button { margin-left: 4px; }
 .builder-exercise-list, .builder-items { display: grid; gap: 7px; padding: 0; margin: 0; list-style: none; }
+.builder-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: -4px 0 12px; }
+.chip { border: 1px solid var(--line); background: #fff; padding: 5px 8px; cursor: pointer; font: 10px "DM Mono", monospace; }
+.chip.active, .chip:focus { background: var(--lime); border-color: var(--ink); }
+.nav-admin + .nav-auth { margin-left: 0; }
 .picker-item { display: flex; justify-content: space-between; gap: 8px; align-items: center; border-bottom: 1px solid var(--line); padding: 8px 0; }
 .picker-item strong, .picker-item small { display: block; }
 .picker-item small { color: var(--muted); font-size: 10px; }

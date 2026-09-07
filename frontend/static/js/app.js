@@ -199,11 +199,18 @@
       const search = $("#builder-search");
       let draft;
       try { draft = JSON.parse(localStorage.getItem(storageKey) || "null"); } catch (_) { draft = null; }
-      draft = draft && Array.isArray(draft.items) ? draft : { program: programs[0]?.slug || "", items: [] };
+      draft = draft && Array.isArray(draft.items) ? draft : { name: "", program: programs[0]?.slug || "", items: [] };
       programSelect.innerHTML = programs.map((program) => `<option value="${escapeHtml(program.slug)}">${escapeHtml(program.name)}</option>`).join("");
       programSelect.value = draft.program || programs[0]?.slug || "";
+      $("#builder-name").value = draft.name || "";
       const save = () => { try { localStorage.setItem(storageKey, JSON.stringify(draft)); } catch (_) { announce("Draft is active for this session; browser storage is unavailable."); } };
       const announce = (message) => { $("#builder-status").textContent = message; };
+      const validateName = () => {
+        draft.name = $("#builder-name").value.trim();
+        $("#builder-title").textContent = draft.name || "Custom session";
+        if (draft.name.length < 3) { announce("Plan name must be at least 3 characters."); return false; }
+        save(); announce("Plan name saved."); return true;
+      };
       const renderItems = () => {
         $("#builder-empty").hidden = draft.items.length > 0;
         list.innerHTML = draft.items.map((item, index) => `<li class="builder-item" draggable="true" data-index="${index}">
@@ -236,19 +243,28 @@
         if (next < 0 || next >= draft.items.length) return;
         [draft.items[index], draft.items[next]] = [draft.items[next], draft.items[index]]; save(); renderItems();
       }
+      let activeFilter = "";
       const renderPicker = () => {
         const term = search.value.trim().toLowerCase();
-        picker.innerHTML = listOrEmpty(exercises).filter((exercise) => exercise.name.toLowerCase().includes(term)).map((exercise) => `<div class="picker-item"><span><strong>${escapeHtml(exercise.name)}</strong><small>${escapeHtml(exercise.body_part)} · ${escapeHtml(exercise.type || "Main work")}</small></span><button class="button button-small button-light" data-add="${escapeHtml(exercise.name)}" type="button">Add</button></div>`).join("");
+        const matches = listOrEmpty(exercises).filter((exercise) => exercise.name.toLowerCase().includes(term) &&
+          (!activeFilter || activeFilter === `body:${exercise.body_part}` || activeFilter === `type:${exercise.type}`));
+        picker.innerHTML = matches.map((exercise) => `<div class="picker-item"><span><strong>${escapeHtml(exercise.name)}</strong><small>${escapeHtml(exercise.body_part)} · ${escapeHtml(exercise.type || "Main work")}</small></span><button class="button button-small button-light" data-add="${escapeHtml(exercise.name)}" type="button">Add</button></div>`).join("") || "<p class='loading'>No matching exercises.</p>";
         $$("[data-add]", picker).forEach((button) => button.addEventListener("click", () => {
           const exercise = exercises.find((item) => item.name === button.dataset.add);
           draft.items.push({ name: exercise.name, sets: "3", reps: "10", rest: "45 sec" }); save(); renderItems(); announce(`${exercise.name} added.`);
         }));
       };
       programSelect.addEventListener("change", () => { draft.program = programSelect.value; save(); $("#builder-title").textContent = `${programSelect.options[programSelect.selectedIndex].text} draft`; });
+      $("#builder-name").addEventListener("input", validateName);
       search.addEventListener("input", renderPicker);
+      $$(".chip", picker.parentElement).forEach((chip) => chip.addEventListener("click", () => {
+        activeFilter = chip.dataset.filter;
+        $$(".chip", picker.parentElement).forEach((item) => item.classList.toggle("active", item === chip));
+        renderPicker();
+      }));
       $("#builder-clear").addEventListener("click", () => { draft.items = []; save(); renderItems(); announce("Draft cleared."); });
       $("#builder-print").addEventListener("click", () => window.print());
-      $("#builder-title").textContent = `${programSelect.options[programSelect.selectedIndex].text} draft`;
+      $("#builder-title").textContent = draft.name || "Custom session";
       renderPicker(); renderItems();
     }
   }
