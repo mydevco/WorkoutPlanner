@@ -171,6 +171,22 @@ class ForgeApiSmokeTest(unittest.TestCase):
         for body_part in ("Abs", "Biceps", "Triceps"):
             self.assertEqual(sum(item["body_part"] == body_part for item in second), 12)
 
+    def test_program_expansion_has_six_programs_per_duration_and_complete_rows(self):
+        programs = self.client.get("/api/programs").get_json()
+        by_duration = {}
+        for program in programs:
+            by_duration.setdefault(program["duration"], []).append(program)
+        self.assertEqual({duration: len(items) for duration, items in by_duration.items()}, {30: 7, 45: 7, 60: 7})
+        allowed = set(self.client.get("/api/equipment").get_json())
+        for program in programs:
+            self.assertTrue(program["workouts"])
+            for workout in program["workouts"]:
+                self.assertEqual(workout["duration"], program["duration"])
+                self.assertEqual(workout["exercises"][0]["type"], "Dynamic warm-up")
+                self.assertEqual(workout["exercises"][-1]["type"], "Static cooldown")
+                self.assertTrue(all(set(workout["equipment"]) <= allowed for _ in [0]))
+                self.assertTrue(all(exercise.get("instruction") for exercise in workout["exercises"]))
+
     def test_exercise_page_has_print_controls_and_print_css(self):
         page = self.client.get("/exercises").get_data(as_text=True)
         self.assertIn("Print exercises", page)

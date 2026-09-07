@@ -166,6 +166,56 @@ SEED_WORKOUTS = [
     },
 ]
 
+PROGRAM_EXPANSIONS = [
+    (f"30-minute-{i}", f"30-minute {name}", 30, focus, f"A focused {focus} session for a compact training day.", title, equipment, exercises)
+    for i, name, focus, title, equipment, exercises in [
+        (2, "core spark", "core", "Core Spark", ["bodyweight", "yoga mat"], [{"name": "Hollow-body hold", "sets": 3, "reps": "20 sec", "rest": "30 sec"}, {"name": "Reverse crunch", "sets": 3, "reps": "12", "rest": "30 sec"}]),
+        (3, "leg express", "leg day", "Leg Express", ["kettlebells", "bodyweight"], [{"name": "Kettlebell goblet squat", "sets": 3, "reps": "10", "rest": "45 sec"}, {"name": "Reverse lunge", "sets": 3, "reps": "10/side", "rest": "45 sec"}]),
+        (4, "upper pulse", "upper body", "Upper Pulse", ["dumbbells", "benches"], [{"name": "Incline dumbbell curl", "sets": 3, "reps": "10", "rest": "45 sec"}, {"name": "Dumbbell bench press", "sets": 3, "reps": "10", "rest": "45 sec"}]),
+        (5, "bodyweight base", "full-body", "Bodyweight Base", ["bodyweight", "yoga mat"], [{"name": "Bodyweight squat", "sets": 3, "reps": "15", "rest": "30 sec"}, {"name": "Plank shoulder tap", "sets": 3, "reps": "16 total", "rest": "30 sec"}]),
+        (6, "ruck primer", "hybrid", "Ruck Primer", ["rucking gear", "step"], [{"name": "Loaded step-up", "sets": 3, "reps": "10/side", "rest": "45 sec"}, {"name": "Ruck walk", "sets": 1, "reps": "12 min", "rest": "—"}]),
+        (7, "triceps thirty", "upper body", "Triceps Thirty", ["dumbbells", "bodyweight"], [{"name": "Dumbbell overhead triceps extension", "sets": 3, "reps": "10", "rest": "45 sec"}, {"name": "Diamond push-up", "sets": 3, "reps": "AMRAP", "rest": "45 sec"}]),
+    ]
+] + [
+    (f"45-minute-{i}", f"45-minute {name}", 45, focus, f"A balanced {focus} session with room for deliberate strength work.", title, equipment, exercises)
+    for i, name, focus, title, equipment, exercises in [
+        (2, "abs and engine", "core", "Abs and Engine", ["ab roller", "bodyweight", "yoga mat"], [{"name": "Ab-wheel rollout", "sets": 4, "reps": "8", "rest": "60 sec"}, {"name": "Mountain climber", "sets": 4, "reps": "30 sec", "rest": "30 sec"}]),
+        (3, "kettlebell build", "leg day", "Kettlebell Build", ["kettlebells", "bodyweight"], [{"name": "Kettlebell swing", "sets": 4, "reps": "15", "rest": "45 sec"}, {"name": "Reverse lunge", "sets": 4, "reps": "10/side", "rest": "45 sec"}]),
+        (4, "press and arms", "upper body", "Press and Arms", ["barbells", "dumbbells", "benches"], [{"name": "Barbell bench press", "sets": 4, "reps": "6", "rest": "90 sec"}, {"name": "Barbell curl", "sets": 3, "reps": "10", "rest": "45 sec"}]),
+        (5, "full-body tempo", "full-body", "Full-body Tempo", ["resistance bands", "bodyweight"], [{"name": "Bodyweight squat", "sets": 4, "reps": "15", "rest": "30 sec"}, {"name": "Resistance band pressdown", "sets": 3, "reps": "15", "rest": "30 sec"}]),
+        (6, "station circuit", "hybrid", "Station Circuit", ["workout station", "step", "bodyweight"], [{"name": "Loaded step-up", "sets": 4, "reps": "10/side", "rest": "45 sec"}, {"name": "Bear crawl", "sets": 4, "reps": "30 sec", "rest": "45 sec"}]),
+        (7, "back and biceps", "upper body", "Back and Biceps", ["pull-up bar", "dumbbells"], [{"name": "Pull-up", "sets": 4, "reps": "AMRAP", "rest": "75 sec"}, {"name": "Hammer curl", "sets": 3, "reps": "10", "rest": "45 sec"}]),
+    ]
+] + [
+    (f"60-minute-{i}", f"60-minute {name}", 60, focus, f"A complete {focus} training block with strength, preparation, and recovery.", title, equipment, exercises)
+    for i, name, focus, title, equipment, exercises in [
+        (2, "core strength", "core", "Core Strength", ["ab roller", "bodyweight", "yoga mat"], [{"name": "Ab-wheel rollout", "sets": 5, "reps": "8", "rest": "60 sec"}, {"name": "Side plank", "sets": 4, "reps": "30 sec/side", "rest": "30 sec"}]),
+        (3, "barbell legs", "leg day", "Barbell Legs", ["barbells", "benches"], [{"name": "Back squat", "sets": 5, "reps": "5", "rest": "120 sec"}, {"name": "Barbell deadlift", "sets": 4, "reps": "5", "rest": "120 sec"}]),
+        (4, "upper strength", "upper body", "Upper Strength", ["barbells", "pull-up bar", "benches"], [{"name": "Barbell overhead press", "sets": 4, "reps": "8", "rest": "90 sec"}, {"name": "Pull-up", "sets": 4, "reps": "AMRAP", "rest": "75 sec"}]),
+        (5, "full-body forge plus", "full-body", "Full-body Forge Plus", ["dumbbells", "benches"], [{"name": "Dumbbell bench press", "sets": 4, "reps": "10", "rest": "60 sec"}, {"name": "Dumbbell Romanian deadlift", "sets": 4, "reps": "12", "rest": "60 sec"}]),
+        (6, "ruck endurance", "hybrid", "Ruck Endurance", ["rucking gear", "wind bike", "step"], [{"name": "Ruck walk", "sets": 1, "reps": "25 min", "rest": "—"}, {"name": "Wind bike sprint", "sets": 8, "reps": "30 sec", "rest": "60 sec"}]),
+        (7, "arms and core", "hybrid", "Arms and Core", ["dumbbells", "bodyweight", "yoga mat"], [{"name": "Alternating dumbbell curl", "sets": 3, "reps": "12 total", "rest": "45 sec"}, {"name": "Hollow-body hold", "sets": 4, "reps": "20 sec", "rest": "30 sec"}]),
+    ]
+]
+
+EXPANDED_PROGRAMS = [
+    (slug, name, duration, focus, description, "#e3ff61")
+    for slug, name, duration, focus, description, _title, _equipment, _exercises in PROGRAM_EXPANSIONS
+]
+EXPANDED_WORKOUTS = [
+    {
+        "title": title,
+        "category": focus,
+        "duration": duration,
+        "equipment": equipment,
+        "description": description,
+        "program": slug,
+        "video_url": "",
+        "exercises": exercises,
+    }
+    for slug, _name, duration, focus, description, title, equipment, exercises in PROGRAM_EXPANSIONS
+]
+
 EXERCISE_METADATA = {
     "March in place": ("Full body", "Dynamic warm-up", "Stand tall and alternate knee lifts at an easy, steady pace."),
     "Arm circles": ("Shoulders", "Dynamic warm-up", "Sweep straight arms through small then larger circles without shrugging."),
@@ -852,6 +902,7 @@ def initialize_database(app: Flask) -> None:
                 ),
             )
     ensure_seed_arm_exercises(database)
+    ensure_expanded_programs(database)
     ensure_seed_mobility_exercises(database)
     database.commit()
     database.close()
@@ -945,6 +996,30 @@ def ensure_seed_mobility_exercises(database: sqlite3.Connection) -> None:
             )
 
 
+def ensure_expanded_programs(database: sqlite3.Connection) -> None:
+    for program in EXPANDED_PROGRAMS:
+        database.execute(
+            "INSERT OR IGNORE INTO programs (slug, name, duration, focus, description, accent) VALUES (?, ?, ?, ?, ?, ?)",
+            program,
+        )
+    for workout in EXPANDED_WORKOUTS:
+        row = database.execute(
+            "SELECT id, exercises FROM workouts WHERE title = ?",
+            (workout["title"],),
+        ).fetchone()
+        if row is None:
+            database.execute(
+                """INSERT INTO workouts
+                   (title, category, duration, equipment, description, exercises, video_url, program)
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    workout["title"], workout["category"], workout["duration"],
+                    json.dumps(workout["equipment"]), workout["description"],
+                    json.dumps(workout["exercises"]), workout["video_url"], workout["program"],
+                ),
+            )
+
+
 def validate_workout(payload: dict, partial: bool = False) -> tuple[list[str], dict]:
     errors: list[str] = []
     cleaned: dict = {}
@@ -1010,7 +1085,7 @@ def validate_workout(payload: dict, partial: bool = False) -> tuple[list[str], d
         errors.append("Video link must be a valid http(s) URL.")
     cleaned["video_url"] = video_url[:500]
     program = payload.get("program", "")
-    if program not in [seed_program[0] for seed_program in SEED_PROGRAMS]:
+    if program not in {item[0] for item in SEED_PROGRAMS} | {item[0] for item in EXPANDED_PROGRAMS}:
         errors.append("Choose a valid workout program.")
     cleaned["program"] = program
     return errors, cleaned
