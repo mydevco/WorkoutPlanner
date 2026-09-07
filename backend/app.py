@@ -164,6 +164,33 @@ SEED_WORKOUTS = [
     },
 ]
 
+EXERCISE_METADATA = {
+    "Goblet squat": ("Legs", "Hold the weight at your chest, sit your hips down, then drive through the floor to stand."),
+    "Dumbbell bench press": ("Chest", "Press the dumbbells from chest level until your arms are straight, then lower with control."),
+    "One-arm row": ("Back", "Brace on a bench, pull one weight toward your ribs, and lower it without twisting."),
+    "Dumbbell Romanian deadlift": ("Hamstrings", "Hinge at the hips with a soft knee bend, keeping the weights close to your legs."),
+    "Kettlebell goblet squat": ("Legs", "Keep the bell close to your chest, squat between your knees, and stand tall."),
+    "Kettlebell swing": ("Glutes", "Hike the bell back, snap your hips forward, and let the bell float to chest height."),
+    "Reverse lunge": ("Legs", "Step one foot back, lower both knees, then push through the front foot to return."),
+    "Single-leg calf raise": ("Calves", "Balance on one foot, lift your heel high, and lower slowly through the full range."),
+    "Barbell bench press": ("Chest", "Lower the bar to mid-chest with steady elbows, then press it back to lockout."),
+    "Pull-up": ("Back", "Hang from the bar, pull your chest toward it, and lower until your arms are straight."),
+    "Barbell overhead press": ("Shoulders", "Start at shoulder height and press the bar overhead while keeping your ribs stacked."),
+    "Inverted row": ("Back", "Pull your chest to a bar set at waist height while keeping your body in one straight line."),
+    "Dead bug": ("Core", "Lie on your back and slowly extend the opposite arm and leg while keeping your low back down."),
+    "Ab-wheel rollout": ("Core", "Roll forward from your knees while bracing your midsection, then pull back with control."),
+    "Side plank": ("Core", "Support your body on one forearm and the side of your foot, keeping hips lifted and stacked."),
+    "Bear crawl": ("Full body", "Move on hands and feet with knees hovering low, taking slow opposite-hand and foot steps."),
+    "Back squat": ("Legs", "Rest the bar securely, squat with a braced torso, and stand by driving through your feet."),
+    "Barbell deadlift": ("Posterior chain", "Set your feet under the bar, hinge to grip it, then stand by pushing the floor away."),
+    "Barbell row": ("Back", "Hinge with a flat back, pull the bar toward your lower ribs, and lower it smoothly."),
+    "Bench press": ("Chest", "Lower the bar to mid-chest with control, then press evenly until your elbows extend."),
+    "Loaded step-up": ("Legs", "Place one foot on the step, drive through it to stand, then step down with control."),
+    "Wind bike sprint": ("Conditioning", "Pedal hard for the timed interval, keeping a steady posture and controlled breathing."),
+    "Ruck walk": ("Conditioning", "Walk tall under your ruck load with short, steady steps and relaxed shoulders."),
+    "Bodyweight squat": ("Legs", "Sit your hips back and down, keep your chest proud, then stand through both feet."),
+}
+
 
 def create_app(test_config: dict | None = None) -> Flask:
     app = Flask(
@@ -227,6 +254,10 @@ def create_app(test_config: dict | None = None) -> Flask:
     def programs():
         return render_template("programs.html", page="programs")
 
+    @app.get("/exercises")
+    def exercises():
+        return render_template("exercises.html", page="exercises")
+
     @app.get("/admin")
     @admin_required
     def admin():
@@ -275,6 +306,17 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get("/api/equipment")
     def equipment():
         return jsonify(list(ALLOWED_EQUIPMENT))
+
+    @app.get("/api/exercises")
+    def list_exercises():
+        body_part = request.args.get("body_part", "").strip()
+        equipment_filter = request.args.get("equipment", "").strip()
+        catalog = get_exercise_catalog()
+        if body_part:
+            catalog = [item for item in catalog if item["body_part"] == body_part]
+        if equipment_filter:
+            catalog = [item for item in catalog if equipment_filter in item["equipment"]]
+        return jsonify(catalog)
 
     @app.get("/api/chat/status")
     def chat_status():
@@ -467,6 +509,38 @@ def get_workout_catalog() -> dict:
         ).fetchall()
     ]
     return {"workouts": workouts, "programs": programs}
+
+
+def get_exercise_catalog() -> list[dict]:
+    database = get_db()
+    equipment_by_exercise: dict[str, set[str]] = {}
+    for row in database.execute("SELECT equipment, exercises FROM workouts").fetchall():
+        try:
+            equipment = json.loads(row["equipment"])
+            exercises = json.loads(row["exercises"])
+        except (TypeError, json.JSONDecodeError):
+            continue
+        for exercise in exercises:
+            name = str(exercise.get("name", "")).strip()
+            if name:
+                equipment_by_exercise.setdefault(name, set()).update(
+                    item for item in equipment if item in ALLOWED_EQUIPMENT
+                )
+    catalog = []
+    for name in sorted(equipment_by_exercise, key=str.casefold):
+        body_part, description = EXERCISE_METADATA.get(
+            name,
+            ("Full body", "Move with control through a comfortable range and keep your trunk braced."),
+        )
+        catalog.append(
+            {
+                "name": name,
+                "body_part": body_part,
+                "description": description,
+                "equipment": sorted(equipment_by_exercise[name], key=str.casefold),
+            }
+        )
+    return catalog
 
 
 def generate_gemini_response(api_key: str, message: str, catalog: dict) -> str:

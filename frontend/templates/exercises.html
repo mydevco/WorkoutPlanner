@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Exercise catalog — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero exercise-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">The movement library</p><h1>Exercise<br><em>catalog.</em></h1></div>
+    <p>Learn the intent behind every movement in the Forge workout library, then filter by body part or equipment.</p>
+  </div>
+</section>
+<section class="section exercise-section">
+  <div class="container">
+    <div class="toolbar no-print" aria-label="Exercise filters">
+      <label><span class="sr-only">Filter by body part</span><select id="body-part-filter"><option value="">All body parts</option></select></label>
+      <label><span class="sr-only">Filter by equipment</span><select id="exercise-equipment-filter"><option value="">All equipment</option></select></label>
+      <button id="clear-exercise-filters" class="button button-small button-light" type="button">Clear</button>
+      <button class="button button-small button-dark print-trigger" type="button">Print exercises</button>
+    </div>
+    <div class="exercise-meta"><span id="exercise-count" aria-live="polite">Loading exercises…</span></div>
+    <div id="exercise-groups" class="exercise-groups" aria-live="polite"><p class="loading">Loading exercises…</p></div>
+  </div>
+</section>
+{% endblock %}

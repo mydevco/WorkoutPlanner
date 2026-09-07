@@ -105,6 +105,19 @@ em { font-family: var(--serif); font-weight: 400; letter-spacing: -.08em; }
 .program-hero { background: var(--blue); }
 .admin-hero { background: var(--orange); }
 .catalog-section { padding-top: 57px; }
+.exercise-hero { background: var(--blue); }
+.exercise-section { padding-top: 57px; }
+.exercise-meta { color: var(--muted); font: 11px "DM Mono", monospace; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 24px; }
+.exercise-groups { display: grid; gap: 38px; }
+.exercise-group { border-top: 1px solid var(--ink); padding-top: 18px; }
+.exercise-group-heading { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 17px; }
+.exercise-group-heading .eyebrow { margin: 0; color: var(--ink); }
+.exercise-group-heading span { color: var(--muted); font: 11px "DM Mono", monospace; }
+.exercise-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.exercise-card { background: #fff; border: 1px solid var(--line); padding: 20px; min-height: 175px; display: flex; flex-direction: column; }
+.exercise-card h2 { font-size: 25px; margin: 0 0 12px; letter-spacing: -.04em; }
+.exercise-card p { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+.exercise-card .tag-list { margin-top: auto; }
 .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
 .toolbar label, .toolbar select, .toolbar input { font: 13px "Space Grotesk", sans-serif; }
 .toolbar select, .search-field { background: #fff; border: 1px solid var(--line); min-height: 42px; }
@@ -185,7 +198,7 @@ legend { font-size: 12px; font-weight: 600; padding: 0 5px; }
   .stats-grid > div:nth-child(3) { padding-left: 0; }
   .section { padding: 66px 0; }
   .section-heading { align-items: start; flex-direction: column; gap: 20px; margin-bottom: 30px; }
-  .workout-grid, .program-workouts, .admin-layout { grid-template-columns: 1fr; }
+  .workout-grid, .program-workouts, .admin-layout, .exercise-grid { grid-template-columns: 1fr; }
   .page-hero { padding: 55px 0 50px; }
   .page-hero-inner > p { margin: 0; }
   .toolbar { align-items: stretch; }
@@ -208,10 +221,13 @@ legend { font-size: 12px; font-weight: 600; padding: 0 5px; }
   .page-hero-inner > p { max-width: none; margin-top: 10px; }
   .section, .catalog-section { padding: 20px 0; }
   .workout-grid, .program-workouts { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .exercise-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .workout-card, .program-workout { border: 1px solid #bbb; padding: 14px; min-height: auto; break-inside: avoid; }
   .workout-card h3, .program-workout h3 { font-size: 15pt; }
   .tag-list li { border-color: #aaa; }
   .program-list { gap: 24px; }
+  .exercise-groups { gap: 24px; }
+  .exercise-card { break-inside: avoid; min-height: auto; }
   .program-block { break-inside: avoid; }
   .program-block h2 { font-size: 22pt; letter-spacing: 0; }
   .program-block-head { display: block; }

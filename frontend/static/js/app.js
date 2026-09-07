@@ -107,6 +107,47 @@
       } catch (error) {
         grid.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
       }
+
+      async function loadExercises() {
+        const groups = $("#exercise-groups");
+        if (!groups) return;
+        const bodyPart = $("#body-part-filter");
+        const equipment = $("#exercise-equipment-filter");
+        let allExercises = [];
+        function optionMarkup(values, label) {
+          return `<option value="">${label}</option>${values.map((value) => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join("")}`;
+        }
+        function render(exercises) {
+          $("#exercise-count").textContent = `${exercises.length} exercise${exercises.length === 1 ? "" : "s"} found`;
+          const grouped = exercises.reduce((result, exercise) => {
+            (result[exercise.body_part] ||= []).push(exercise);
+            return result;
+          }, {});
+          groups.innerHTML = Object.entries(grouped).map(([part, items]) => `<section class="exercise-group">
+            <div class="exercise-group-heading"><p class="eyebrow">${escapeHtml(part)}</p><span>${items.length} movement${items.length === 1 ? "" : "s"}</span></div>
+            <div class="exercise-grid">${items.map((exercise) => `<article class="exercise-card">
+              <h2>${escapeHtml(exercise.name)}</h2>
+              <p>${escapeHtml(exercise.description)}</p>
+              <ul class="tag-list" aria-label="Equipment">${exercise.equipment.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+            </article>`).join("")}</div>
+          </section>`).join("") || "<p class='empty-state'>No exercises match those filters.</p>";
+        }
+        try {
+          allExercises = await api("/api/exercises");
+          bodyPart.innerHTML = optionMarkup([...new Set(allExercises.map((item) => item.body_part))].sort(), "All body parts");
+          equipment.innerHTML = optionMarkup([...new Set(allExercises.flatMap((item) => item.equipment))].sort(), "All equipment");
+          const refresh = () => render(allExercises.filter((item) =>
+            (!bodyPart.value || item.body_part === bodyPart.value) &&
+            (!equipment.value || item.equipment.includes(equipment.value))
+          ));
+          bodyPart.addEventListener("change", refresh);
+          equipment.addEventListener("change", refresh);
+          $("#clear-exercise-filters").addEventListener("click", () => { bodyPart.value = ""; equipment.value = ""; refresh(); });
+          refresh();
+        } catch (error) {
+          groups.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`;
+        }
+      }
     }
     [duration, category].forEach((field) => field.addEventListener("change", refresh));
     search.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(refresh, 180); });
@@ -192,6 +233,7 @@
   wireMenu(); wirePrint();
   if (page === "home") loadHome();
   if (page === "catalog") loadCatalog();
+  if (page === "exercises") loadExercises();
   if (page === "programs") loadPrograms();
   if (page === "admin") loadAdmin();
 }());
