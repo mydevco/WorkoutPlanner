@@ -59,6 +59,23 @@ class ForgeApiSmokeTest(unittest.TestCase):
         arbitrary = self.client.post("/api/exercises", json={**payload, "name": "Novel target", "body_part": ""})
         self.assertEqual(arbitrary.status_code, 201)
 
+    def test_catalog_manager_loading_path_has_list_guard_and_api_rows(self):
+        page = self.client.get("/admin")
+        self.assertEqual(page.status_code, 200)
+        self.assertIn(b"exercise-manager-list", page.data)
+        self.assertNotIn(b"exercise-form", page.data)
+        exercises = self.client.get("/api/exercises")
+        self.assertEqual(exercises.status_code, 200)
+        self.assertTrue(exercises.get_json())
+        js_response = self.client.get("/static/js/app.js")
+        js = js_response.get_data(as_text=True)
+        js_response.close()
+        self.assertIn("if (!list) return;", js)
+        self.assertNotIn("if (!list || !form) return;", js)
+        self.assertIn("list.innerHTML = filtered.map", js)
+        self.assertIn("async function loadExerciseForm()", js)
+        self.assertNotIn("form.addEventListener(\"submit\"", js[js.index("async function loadExerciseManager()"):js.index("async function loadExerciseForm()")])
+
     def test_program_page_has_navigation_and_local_builder_ui(self):
         page = self.client.get("/programs").get_data(as_text=True)
         for marker in ("#program-30", "#program-45", "#program-60", "#program-builder", "program-focus-filter", "builder-program", "builder-items"):

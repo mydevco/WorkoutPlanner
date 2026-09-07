@@ -331,18 +331,8 @@
 
   async function loadExerciseManager() {
     const list = $("#exercise-manager-list");
-    const form = $("#exercise-form");
-    if (!list || !form) return;
-    const message = $("#exercise-form-message");
-    const equipment = await api("/api/equipment").catch(() => []);
-    $("#exercise-equipment-options").innerHTML = equipment.map((item) =>
-      `<label class="check-item"><input type="checkbox" name="manager-equipment" value="${escapeHtml(item)}"> ${escapeHtml(labelCase(item))}</label>`
-    ).join("");
-    $$('input[name="manager-equipment"]').forEach((input) => input.addEventListener("change", () => {
-      if (input.checked) $$('input[name="manager-equipment"]').filter((item) => item !== input).forEach((item) => { item.checked = false; });
-    }));
+    if (!list) return;
     let exercises = [];
-    const showMessage = (text, success = false) => { message.textContent = text; message.className = `form-message${success ? " success" : ""}`; };
     const render = () => {
       const term = $("#manager-search").value.trim().toLowerCase();
       const bodyPart = $("#manager-body-part").value;
@@ -355,7 +345,7 @@
         (!equipmentFilter || item.equipment.includes(equipmentFilter))
       );
       $("#manager-count").textContent = `(${filtered.length}/${exercises.length})`;
-      list.innerHTML = filtered.map((item) => `<article class="manager-exercise"><div><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(item.body_part)} · ${escapeHtml(item.type)}</p><p>${escapeHtml(item.description)}</p></div><ul class="tag-list">${item.equipment.map((tag) => `<li>${escapeHtml(tag)}</li>`).join("") || "<li>bodyweight</li>"}</ul></article>`).join("") || "<p class='loading'>No exercises match those filters.</p>";
+      list.innerHTML = filtered.map((item) => `<article class="manager-exercise"><div><h3>${escapeHtml(item.name)}</h3><p>${escapeHtml(item.body_part || "Unassigned")} · ${escapeHtml(item.type || "Main work")}</p><p>${escapeHtml(item.description)}</p></div><ul class="tag-list">${listOrEmpty(item.equipment).map((tag) => `<li>${escapeHtml(tag)}</li>`).join("") || "<li>bodyweight</li>"}</ul></article>`).join("") || "<p class='loading'>No exercises match those filters.</p>";
     };
     async function refresh() {
       try {
@@ -367,33 +357,25 @@
         render();
       } catch (error) { list.innerHTML = `<p class="loading">${escapeHtml(error.message)}</p>`; }
     }
-
-    async function loadExerciseForm() {
-      const form = $("#exercise-form");
-      if (!form || $("#exercise-manager-list")) return;
-      const message = $("#exercise-form-message");
-      const equipment = await api("/api/equipment").catch(() => []);
-      $("#exercise-equipment-options").innerHTML = equipment.map((item) =>
-        `<label class="check-item"><input type="checkbox" name="manager-equipment" value="${escapeHtml(item)}"> ${escapeHtml(labelCase(item))}</label>`
-      ).join("");
-      $$('input[name="manager-equipment"]').forEach((input) => input.addEventListener("change", () => {
-        if (input.checked) $$('input[name="manager-equipment"]').filter((item) => item !== input).forEach((item) => { item.checked = false; });
-      }));
-      form.addEventListener("submit", async (event) => {
-        event.preventDefault();
-        const selected = $$('input[name="manager-equipment"]:checked').map((input) => input.value);
-        const payload = { name: $("#exercise-name").value, body_part: $("#exercise-body-part").value, type: $("#exercise-type").value, equipment: selected, description: $("#exercise-description").value };
-        try {
-          await api("/api/exercises", { method: "POST", body: JSON.stringify(payload) });
-          message.textContent = "Exercise added to the catalog."; message.className = "form-message success"; form.reset();
-        } catch (error) { message.textContent = error.message; }
-      });
-    }
     ["manager-search", "manager-body-part", "manager-type", "manager-equipment"].forEach((id) => $(`#${id}`).addEventListener("input", render));
+    $("#refresh-exercises").addEventListener("click", refresh);
+    refresh();
+  }
+
+  async function loadExerciseForm() {
+    const form = $("#exercise-form");
+    if (!form) return;
+    const message = $("#exercise-form-message");
+    const equipment = await api("/api/equipment").catch(() => []);
+    $("#exercise-equipment-options").innerHTML = equipment.map((item) =>
+      `<label class="check-item"><input type="checkbox" name="manager-equipment" value="${escapeHtml(item)}"> ${escapeHtml(labelCase(item))}</label>`
+    ).join("");
+    $$('input[name="manager-equipment"]').forEach((input) => input.addEventListener("change", () => {
+      if (input.checked) $$('input[name="manager-equipment"]').filter((item) => item !== input).forEach((item) => { item.checked = false; });
+    }));
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const selected = $$('input[name="manager-equipment"]:checked').map((input) => input.value);
-      if (selected.length > 1) { showMessage("Choose no more than one equipment type."); return; }
       const payload = {
         name: $("#exercise-name").value,
         body_part: $("#exercise-body-part").value,
@@ -403,11 +385,13 @@
       };
       try {
         await api("/api/exercises", { method: "POST", body: JSON.stringify(payload) });
-        form.reset(); await refresh(); showMessage("Exercise added to the catalog.", true);
-      } catch (error) { showMessage(error.message); }
+        form.reset();
+        message.textContent = "Exercise added to the catalog.";
+        message.className = "form-message success";
+      } catch (error) {
+        message.textContent = error.message;
+      }
     });
-    $("#refresh-exercises").addEventListener("click", refresh);
-    refresh();
   }
 
   wireMenu(); wirePrint();
