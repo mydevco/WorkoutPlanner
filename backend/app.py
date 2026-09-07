@@ -191,9 +191,9 @@ EXERCISE_METADATA = {
     "Inverted row": ("Back", "Pull your chest to a bar set at waist height while keeping your body in one straight line."),
     "Barbell curl": ("Biceps", "Keep your elbows close to your ribs, curl the bar toward your shoulders, then lower it slowly."),
     "Bench triceps dip": ("Triceps", "Place your hands on the bench edge, lower your hips with control, then press through your palms to rise."),
-    "Dead bug": ("Core", "Lie on your back and slowly extend the opposite arm and leg while keeping your low back down."),
-    "Ab-wheel rollout": ("Core", "Roll forward from your knees while bracing your midsection, then pull back with control."),
-    "Side plank": ("Core", "Support your body on one forearm and the side of your foot, keeping hips lifted and stacked."),
+    "Dead bug": ("Abs", "Lie on your back and slowly extend the opposite arm and leg while keeping your low back down."),
+    "Ab-wheel rollout": ("Abs", "Roll forward from your knees while bracing your midsection, then pull back with control."),
+    "Side plank": ("Abs", "Support your body on one forearm and the side of your foot, keeping hips lifted and stacked."),
     "Bear crawl": ("Full body", "Move on hands and feet with knees hovering low, taking slow opposite-hand and foot steps."),
     "Back squat": ("Legs", "Rest the bar securely, squat with a braced torso, and stand by driving through your feet."),
     "Barbell deadlift": ("Posterior chain", "Set your feet under the bar, hinge to grip it, then stand by pushing the floor away."),
@@ -203,6 +203,77 @@ EXERCISE_METADATA = {
     "Wind bike sprint": ("Conditioning", "Pedal hard for the timed interval, keeping a steady posture and controlled breathing."),
     "Ruck walk": ("Conditioning", "Walk tall under your ruck load with short, steady steps and relaxed shoulders."),
     "Bodyweight squat": ("Legs", "Sit your hips back and down, keep your chest proud, then stand through both feet."),
+}
+
+EXPANSION_EXERCISES = {
+    "Core Control": [
+        {"name": "Hollow-body hold", "sets": 3, "reps": "20 sec", "rest": "30 sec", "equipment": ["bodyweight", "yoga mat"]},
+        {"name": "Reverse crunch", "sets": 3, "reps": "12", "rest": "30 sec", "equipment": ["bodyweight", "yoga mat"]},
+        {"name": "Bicycle crunch", "sets": 3, "reps": "16 total", "rest": "30 sec", "equipment": ["bodyweight", "yoga mat"]},
+        {"name": "Mountain climber", "sets": 3, "reps": "30 sec", "rest": "30 sec", "equipment": ["bodyweight"]},
+        {"name": "Plank shoulder tap", "sets": 3, "reps": "16 total", "rest": "30 sec", "equipment": ["bodyweight"]},
+        {"name": "V-sit reach", "sets": 3, "reps": "10", "rest": "30 sec", "equipment": ["bodyweight", "yoga mat"]},
+        {"name": "Heel tap", "sets": 3, "reps": "20 total", "rest": "30 sec", "equipment": ["bodyweight", "yoga mat"]},
+        {"name": "Bird dog", "sets": 3, "reps": "10/side", "rest": "30 sec", "equipment": ["bodyweight", "yoga mat"]},
+        {"name": "Bear plank", "sets": 3, "reps": "20 sec", "rest": "30 sec", "equipment": ["bodyweight"]},
+    ],
+    "Pull + Press": [
+        {"name": "Incline dumbbell curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells", "benches"]},
+        {"name": "Hammer curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Concentration curl", "sets": 3, "reps": "10/side", "rest": "45 sec", "equipment": ["dumbbells", "benches"]},
+        {"name": "Zottman curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Alternating dumbbell curl", "sets": 3, "reps": "12 total", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Dumbbell spider curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells", "benches"]},
+        {"name": "Close-grip bench press", "sets": 3, "reps": "8", "rest": "75 sec", "equipment": ["barbells", "benches"]},
+        {"name": "Dumbbell overhead triceps extension", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Dumbbell kickback", "sets": 3, "reps": "12/side", "rest": "45 sec", "equipment": ["dumbbells", "benches"]},
+        {"name": "Lying dumbbell triceps extension", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells", "benches"]},
+        {"name": "Barbell skull crusher", "sets": 3, "reps": "10", "rest": "60 sec", "equipment": ["barbells", "benches"]},
+        {"name": "Resistance band pressdown", "sets": 3, "reps": "15", "rest": "30 sec", "equipment": ["resistance bands"]},
+        {"name": "Diamond push-up", "sets": 3, "reps": "AMRAP", "rest": "45 sec", "equipment": ["bodyweight"]},
+        {"name": "Dumbbell floor press", "sets": 3, "reps": "10", "rest": "60 sec", "equipment": ["dumbbells"]},
+        {"name": "Single-arm overhead extension", "sets": 3, "reps": "12/side", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Bench close-grip push-up", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["bodyweight", "benches"]},
+        {"name": "Dumbbell rolling triceps extension", "sets": 3, "reps": "10", "rest": "60 sec", "equipment": ["dumbbells", "benches"]},
+        {"name": "Cable-free band curl", "sets": 3, "reps": "15", "rest": "30 sec", "equipment": ["resistance bands"]},
+        {"name": "Cross-body hammer curl", "sets": 3, "reps": "12 total", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Reverse curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["barbells"]},
+        {"name": "Dumbbell drag curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells"]},
+        {"name": "Preacher curl", "sets": 3, "reps": "10", "rest": "45 sec", "equipment": ["dumbbells", "benches"]},
+    ],
+}
+
+EXERCISE_EXPANSION_METADATA = {
+    name: (
+        "Abs",
+        "Main work",
+        f"Perform {name.lower()} with a braced midsection, controlled tempo, and steady breathing.",
+    )
+    for exercise in EXPANSION_EXERCISES["Core Control"]
+    for name in [exercise["name"]]
+} | {
+    name: (
+        "Biceps",
+        "Main work",
+        f"Perform {name.lower()} with elbows stable, a controlled lift, and a slow return.",
+    )
+    for name in (
+        "Incline dumbbell curl", "Hammer curl", "Concentration curl", "Zottman curl",
+        "Alternating dumbbell curl", "Dumbbell spider curl", "Cable-free band curl",
+        "Cross-body hammer curl", "Reverse curl", "Dumbbell drag curl", "Preacher curl",
+    )
+} | {
+    name: (
+        "Triceps",
+        "Main work",
+        f"Perform {name.lower()} with elbows controlled and extend fully without locking forcefully.",
+    )
+    for name in (
+        "Close-grip bench press", "Dumbbell overhead triceps extension", "Dumbbell kickback",
+        "Lying dumbbell triceps extension", "Barbell skull crusher", "Resistance band pressdown",
+        "Diamond push-up", "Dumbbell floor press", "Single-arm overhead extension",
+        "Bench close-grip push-up", "Dumbbell rolling triceps extension",
+    )
 }
 
 WARMUP_BY_CATEGORY = {
@@ -617,7 +688,7 @@ def get_exercise_catalog() -> list[dict]:
 
 
 def exercise_metadata(name: str) -> tuple[str, str, str]:
-    metadata = EXERCISE_METADATA.get(name)
+    metadata = EXERCISE_METADATA.get(name) or EXERCISE_EXPANSION_METADATA.get(name)
     if metadata is None:
         return (
             "Full body",
@@ -830,7 +901,7 @@ def ensure_seed_arm_exercises(database: sqlite3.Connection) -> None:
 
 
 def ensure_seed_mobility_exercises(database: sqlite3.Connection) -> None:
-    rows = database.execute("SELECT id, category, exercises FROM workouts").fetchall()
+    rows = database.execute("SELECT id, title, category, exercises FROM workouts").fetchall()
     for row in rows:
         try:
             exercises = json.loads(row["exercises"])
@@ -839,6 +910,14 @@ def ensure_seed_mobility_exercises(database: sqlite3.Connection) -> None:
         if not isinstance(exercises, list):
             continue
         names = {item.get("name") for item in exercises if isinstance(item, dict)}
+        existing_warmups = [
+            item for item in exercises
+            if isinstance(item, dict) and item.get("type") == "Dynamic warm-up"
+        ]
+        existing_cooldowns = [
+            item for item in exercises
+            if isinstance(item, dict) and item.get("type") == "Static cooldown"
+        ]
         warmups = [
             dict(item)
             for item in WARMUP_BY_CATEGORY.get(row["category"], WARMUP_BY_CATEGORY["hybrid"])
@@ -850,7 +929,15 @@ def ensure_seed_mobility_exercises(database: sqlite3.Connection) -> None:
             for item in COOLDOWN_BY_CATEGORY.get(row["category"], DEFAULT_COOLDOWN)
             if item["name"] not in names
         ]
-        updated = warmups + exercises + cooldowns
+        existing_main = [
+            item for item in exercises
+            if not isinstance(item, dict) or item.get("type") not in {"Dynamic warm-up", "Static cooldown"}
+        ]
+        additions = []
+        for exercise in EXPANSION_EXERCISES.get(row["title"], []):
+            if exercise["name"] not in names:
+                additions.append(dict(exercise))
+        updated = existing_warmups + warmups + existing_main + additions + existing_cooldowns + cooldowns
         if updated != exercises:
             database.execute(
                 "UPDATE workouts SET exercises = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?",

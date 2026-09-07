@@ -4,7 +4,7 @@ import sqlite3
 from unittest.mock import patch
 from pathlib import Path
 
-from backend.app import EXERCISE_METADATA, GeminiError, SEED_WORKOUTS, create_app
+from backend.app import EXERCISE_EXPANSION_METADATA, EXERCISE_METADATA, GeminiError, SEED_WORKOUTS, create_app
 
 
 TEST_DATABASE = Path(__file__).with_name("smoke.sqlite")
@@ -78,11 +78,11 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertIn("instruction", new_workout["exercises"][0])
 
     def test_exercise_catalog_filters_by_body_part_and_equipment(self):
-        response = self.client.get("/api/exercises?body_part=Core&equipment=ab+roller")
+        response = self.client.get("/api/exercises?body_part=Abs&equipment=ab+roller")
         self.assertEqual(response.status_code, 200)
         exercises = response.get_json()
         self.assertTrue(exercises)
-        self.assertTrue(all(item["body_part"] == "Core" for item in exercises))
+        self.assertTrue(all(item["body_part"] == "Abs" for item in exercises))
         self.assertTrue(all("ab roller" in item["equipment"] for item in exercises))
 
     def test_arm_exercises_have_metadata_usage_and_printable_availability(self):
@@ -111,10 +111,9 @@ class ForgeApiSmokeTest(unittest.TestCase):
         database.close()
         create_app({"TESTING": True, "DATABASE": str(TEST_DATABASE)})
         workout = next(item for item in self.client.get("/api/workouts").get_json() if item["title"] == "Pull + Press")
-        self.assertEqual(
-            {exercise["name"] for exercise in workout["exercises"]},
-            {"Pull-up", "Barbell curl", "Bench triceps dip", "Arm circles", "Cat-cow", "Child's pose", "Doorway chest stretch"},
-        )
+        names = {exercise["name"] for exercise in workout["exercises"]}
+        self.assertTrue({"Pull-up", "Barbell curl", "Bench triceps dip"} <= names)
+        self.assertTrue({"Arm circles", "Cat-cow", "Child's pose", "Doorway chest stretch"} <= names)
 
     def test_warmups_and_static_cooldowns_are_ordered_in_every_workout(self):
         workouts = self.client.get("/api/workouts").get_json()
@@ -142,6 +141,35 @@ class ForgeApiSmokeTest(unittest.TestCase):
             self.assertTrue(exercises[name]["description"])
             self.assertTrue(exercises[name]["usage"])
             self.assertTrue(set(exercises[name]["equipment"]) <= set(self.client.get("/api/equipment").get_json()))
+
+    def test_abs_biceps_triceps_have_twelve_catalog_entries_and_print_details(self):
+        exercises = self.client.get("/api/exercises").get_json()
+        by_part = {}
+        for exercise in exercises:
+            by_part.setdefault(exercise["body_part"], []).append(exercise)
+        self.assertEqual(len(by_part["Abs"]), 12)
+        self.assertEqual(len(by_part["Biceps"]), 12)
+        self.assertEqual(len(by_part["Triceps"]), 12)
+        allowed = set(self.client.get("/api/equipment").get_json())
+        for body_part in ("Abs", "Biceps", "Triceps"):
+            self.assertEqual(len({item["name"] for item in by_part[body_part]}), 12)
+            for item in by_part[body_part]:
+                self.assertTrue(item["description"])
+                self.assertTrue(item["usage"])
+                self.assertIn(item["type"], {"Main work", "Dynamic warm-up", "Static cooldown"})
+                self.assertTrue(set(item["equipment"]) <= allowed)
+        page = self.client.get("/exercises").get_data(as_text=True)
+        self.assertIn("exercise-groups", page)
+        self.assertIn("Print exercises", page)
+        self.assertEqual(len(EXERCISE_EXPANSION_METADATA), 31)
+
+    def test_expansion_backfill_is_idempotent_for_existing_database(self):
+        first = {item["name"] for item in self.client.get("/api/exercises").get_json()}
+        create_app({"TESTING": True, "DATABASE": str(TEST_DATABASE)})
+        second = self.client.get("/api/exercises").get_json()
+        self.assertEqual(first, {item["name"] for item in second})
+        for body_part in ("Abs", "Biceps", "Triceps"):
+            self.assertEqual(sum(item["body_part"] == body_part for item in second), 12)
 
     def test_exercise_page_has_print_controls_and_print_css(self):
         page = self.client.get("/exercises").get_data(as_text=True)
