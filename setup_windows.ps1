@@ -9,10 +9,13 @@ Set-Location $ProjectRoot
 $VenvPath = Join-Path $ProjectRoot ".venv"
 $AlreadyActive = $env:VIRTUAL_ENV
 
-foreach ($RequiredFile in @("requirements.txt", "requirements-midi.txt", "run_windows.py", "forge_fitness.spec")) {
+foreach ($RequiredFile in @("requirements.txt", "run_windows.py", "forge_fitness.spec")) {
     if (-not (Test-Path (Join-Path $ProjectRoot $RequiredFile))) {
         throw "This is not the Forge Fitness source folder: '$ProjectRoot' is missing $RequiredFile. Clone or check out the project branch, then run this script from its repository root."
     }
+}
+if ($InstallMidi -and -not (Test-Path (Join-Path $ProjectRoot "requirements-midi.txt"))) {
+    throw "Optional MIDI requirements are missing from '$ProjectRoot'. Update this checkout first: git fetch origin mydevco-native-midi-windows; git switch mydevco-native-midi-windows; git pull --ff-only. Then rerun .\setup_windows.ps1 -InstallMidi."
 }
 
 if ($ResetVenv) {

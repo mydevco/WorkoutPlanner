@@ -57,6 +57,20 @@ from the wrong folder or the branch has not been checked out yet. Do not copy
 only the script; use the complete repository checkout so the Flask app,
 templates, static files, and packaging spec stay together.
 
+If `requirements-midi.txt` is missing, the checkout is older than the native
+MIDI changes. Update it before requesting optional MIDI installation:
+
+```powershell
+Set-Location E:\work\PythonProjects\SynthTrainer
+git fetch origin mydevco-native-midi-windows
+git switch mydevco-native-midi-windows
+git pull --ff-only
+Get-ChildItem .\requirements-midi.txt, .\setup_windows.ps1, .\run_windows.py
+```
+
+Do not run `pip install -r requirements-midi.txt` until that file is present.
+Core setup intentionally does not require it.
+
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate
