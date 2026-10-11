@@ -22,10 +22,18 @@ class ForgeApiSmokeTest(unittest.TestCase):
             TEST_DATABASE.unlink()
 
     def test_pages_and_healthcheck(self):
-        for path in ("/", "/catalog", "/exercises", "/programs", "/admin", "/login"):
+        for path in ("/", "/catalog", "/exercises", "/programs", "/practice", "/admin", "/login"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 200, path)
         self.assertEqual(self.client.get("/healthz").get_json()["status"], "ok")
+
+    def test_midi_api_is_graceful_without_native_backend(self):
+        page = self.client.get("/practice").get_data(as_text=True)
+        self.assertIn("midi-device", page)
+        response = self.client.get("/api/midi/devices")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("devices", response.get_json())
+        self.assertEqual(self.client.get("/api/midi/events").get_json()["events"], [])
 
     def test_program_search_ui_and_main_navigation(self):
         programs_page = self.client.get("/programs").get_data(as_text=True)

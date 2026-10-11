@@ -12,6 +12,8 @@ backend/                 Flask application, schema, and seed data
 frontend/templates/      Accessible HTML pages
 frontend/static/         CSS and browser JavaScript
 tests/                   Smoke tests for the API and page routes
+run_windows.py           PyInstaller entry point for the Windows executable
+forge_fitness.spec       Reproducible Windows packaging configuration
 ```
 
 ## Setup and run
@@ -34,6 +36,33 @@ use a WSGI server, for example:
 ```bash
 gunicorn "backend.app:create_app()"
 ```
+
+## Windows native MIDI drum practice
+
+Open <http://127.0.0.1:5000/practice> to use the eight-pad practice page.
+The Flask process receives MIDI directly through `mido` and the native
+`python-rtmidi` backend; the browser never uses Web MIDI. Refresh the device
+list, select an input, and connect or disconnect it from the page. Notes
+36–43 map to pads 1–8. Keyboard keys `A S D F J K L ;` and pointer clicks
+remain available when no controller is connected. If the native backend or a
+device is unavailable, the rest of the app still works and the page reports
+the specific status.
+
+Build a Windows `.exe` from a Windows PowerShell terminal after installing
+the requirements:
+
+```powershell
+python -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m PyInstaller --noconfirm --clean forge_fitness.spec
+.\dist\ForgeFitness.exe
+```
+
+The executable starts the local server on `127.0.0.1:5000`; open that URL
+after launch. `PORT` can change the port. Windows MIDI drivers and controller
+permissions remain host-specific; the executable can still run without a
+connected MIDI device.
 
 ## Optional Google and Microsoft OAuth
 

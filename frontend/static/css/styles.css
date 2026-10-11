@@ -123,6 +123,31 @@ em { font-family: var(--serif); font-weight: 400; letter-spacing: -.08em; }
 .exercise-card .tag-list { margin-top: auto; }
 .exercise-usage { margin-bottom: 14px; }
 .exercise-usage td:first-child { min-width: 115px; }
+.practice-hero { background: var(--orange); }
+.practice-section { padding-top: 55px; }
+.midi-panel { background: #fff; border: 1px solid var(--line); padding: 25px; margin-bottom: 70px; }
+.midi-panel h2, .practice-heading h2 { margin: 0; font-size: 42px; }
+.panel-heading, .practice-heading { display: flex; justify-content: space-between; align-items: end; gap: 20px; }
+.midi-status { color: var(--muted); font: 11px "DM Mono", monospace; }
+.midi-controls { display: grid; grid-template-columns: minmax(180px, 1fr) auto auto auto; gap: 12px; align-items: end; }
+.midi-controls label { font-size: 12px; font-weight: 600; }
+.midi-controls button { min-height: 44px; }
+.midi-controls select { margin-top: 7px; }
+.form-message:empty { display: none; }
+.practice-heading { margin-bottom: 28px; }
+.last-hit { color: var(--muted); font: 12px "DM Mono", monospace; margin: 0; }
+.drum-pad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+.drum-pad { min-height: 150px; padding: 22px; border: 1px solid var(--ink); background: #fff; text-align: left; cursor: pointer; display: flex; flex-direction: column; justify-content: space-between; transition: transform .08s, background .08s; }
+.drum-pad:hover, .drum-pad.hit { background: var(--lime); transform: translateY(-3px); }
+.drum-pad span, .drum-pad small { color: var(--muted); font: 11px "DM Mono", monospace; }
+.drum-pad strong { font-size: 22px; }
+.practice-note { color: var(--muted); font-size: 12px; margin-top: 18px; }
+@media (max-width: 760px) {
+  .midi-controls { grid-template-columns: 1fr 1fr; }
+  .midi-controls label { grid-column: 1 / -1; }
+  .drum-pad-grid { grid-template-columns: repeat(2, 1fr); }
+  .practice-heading { align-items: start; flex-direction: column; }
+}
 .toolbar { display: flex; gap: 10px; align-items: center; margin-bottom: 28px; flex-wrap: wrap; }
 .toolbar label, .toolbar select, .toolbar input { font: 13px "Space Grotesk", sans-serif; }
 .toolbar select, .search-field { background: #fff; border: 1px solid var(--line); min-height: 42px; }
