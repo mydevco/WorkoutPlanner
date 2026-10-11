@@ -40,6 +40,10 @@ dependencies:
 python -m backend.app
 ```
 
+Run `setup_windows.ps1` normally, not with a leading dot (`. .\setup_windows.ps1`),
+and do not run `Activate.ps1` again if the prompt already starts with `(.venv)`.
+The setup script never activates or nests an environment, so it is safe to rerun.
+
 ### Recovering a failed or locked Windows `.venv`
 
 The `venvlauncher.exe` copy error usually means `.venv` is stale, partially
@@ -67,6 +71,13 @@ equivalent scripted recovery is:
 ```powershell
 .\setup_windows.ps1 -ResetVenv
 ```
+
+If the prompt already contains many repeated `(.venv)` prefixes, close that
+PowerShell window and open a fresh one; this immediately removes the nested
+prompt wrappers without touching project files. Then run
+`.\setup_windows.ps1` once and activate once. In an interactive shell, running
+`deactivate` repeatedly can unwind the same wrappers, but a fresh terminal is
+the safer recovery.
 
 Open <http://127.0.0.1:5000>. The database is created and seeded on first
 start. Set `FORGE_DATABASE` to use a different SQLite file and set

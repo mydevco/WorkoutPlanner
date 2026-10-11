@@ -6,6 +6,7 @@ $ErrorActionPreference = "Stop"
 $ProjectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $ProjectRoot
 $VenvPath = Join-Path $ProjectRoot ".venv"
+$AlreadyActive = $env:VIRTUAL_ENV
 
 if ($ResetVenv) {
     if (Test-Path $VenvPath) {
@@ -51,4 +52,10 @@ $VenvPython = Join-Path $VenvPath "Scripts\python.exe"
 if ($LASTEXITCODE -ne 0) { throw "pip upgrade failed." }
 & $VenvPython -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed." }
-Write-Host "Setup complete. Activate with .\.venv\Scripts\Activate.ps1"
+if ($AlreadyActive -eq $VenvPath -or $AlreadyActive -eq (Resolve-Path $VenvPath -ErrorAction SilentlyContinue).Path) {
+    Write-Host "Setup complete. The project environment is already active; do not run Activate.ps1 again."
+} elseif ($AlreadyActive) {
+    Write-Host "Setup complete. Another virtual environment is active ($AlreadyActive); open a new shell before activating this one."
+} else {
+    Write-Host "Setup complete. Activate once with .\.venv\Scripts\Activate.ps1"
+}
