@@ -63,10 +63,10 @@ if ($LASTEXITCODE -ne 0) { throw "pip upgrade failed." }
 & $VenvPython -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed." }
 if ($InstallMidi) {
-    Write-Host "Installing optional native MIDI dependencies..."
+    Write-Host "Windows native MIDI uses winmm via the Python standard library; no compiler or pip package is required."
     & $VenvPython -m pip install -r requirements-midi.txt
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "Native MIDI dependencies could not be installed. The app still runs with keyboard/pointer pads. On Python 3.14, install Visual Studio Build Tools with the C++ workload (or wait for a compatible python-rtmidi wheel), then retry with -InstallMidi."
+        Write-Warning "The optional MIDI marker could not be processed. The app still runs with keyboard/pointer pads."
     }
 }
 if ($AlreadyActive -eq $VenvPath -or $AlreadyActive -eq (Resolve-Path $VenvPath -ErrorAction SilentlyContinue).Path) {

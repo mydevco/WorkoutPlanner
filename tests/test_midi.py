@@ -1,7 +1,7 @@
 import unittest
 from types import SimpleNamespace
 
-from backend.midi import MidiService, UnavailableMidiBackend, map_note_to_pad, parse_midi_message
+from backend.midi import MidiService, UnavailableMidiBackend, _event_from_short_message, map_note_to_pad, parse_midi_message
 
 
 class FakePort:
@@ -35,6 +35,10 @@ class MidiTest(unittest.TestCase):
         self.assertEqual(event.as_dict(), {"pad": 3, "note": 39, "velocity": 100, "channel": 2})
         self.assertIsNone(parse_midi_message(SimpleNamespace(type="note_off", note=36, velocity=100)))
         self.assertIsNone(parse_midi_message(SimpleNamespace(type="note_on", note=36, velocity=0)))
+        self.assertEqual(_event_from_short_message(0x642790).as_dict(), {
+            "pad": 3, "note": 39, "velocity": 100, "channel": 0
+        })
+        self.assertIsNone(_event_from_short_message(0x64392780))
 
     def test_device_lifecycle_and_event_polling(self):
         backend = FakeBackend()

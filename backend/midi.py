@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 import threading
+import sys
 from typing import Callable, Protocol
 
 
@@ -67,7 +68,107 @@ class UnavailableMidiBackend:
         raise RuntimeError("The native MIDI backend is unavailable.")
 
 
+def _event_from_short_message(message: int) -> MidiEvent | None:
+    """Decode a packed WinMM short MIDI message."""
+    status = message & 0xFF
+    if status & 0xF0 != 0x90:
+        return None
+    return parse_midi_message(
+        type("WinMMMessage", (), {
+            "type": "note_on",
+            "note": (message >> 8) & 0xFF,
+            "velocity": (message >> 16) & 0xFF,
+            "channel": status & 0x0F,
+        })()
+    )
+
+
+class WindowsMidiBackend:
+    """Windows Multimedia (winmm) MIDI input backend with no third-party DLL."""
+
+    def __init__(self):
+        import ctypes
+
+        self._ctypes = ctypes
+        self._winmm = ctypes.WinDLL("winmm")
+        self._ports: set[WindowsMidiPort] = set()
+        self._callback_type = ctypes.WINFUNCTYPE(
+            None, ctypes.c_void_p, ctypes.c_uint, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_void_p
+        )
+
+    def get_input_names(self) -> list[str]:
+        import ctypes
+
+        count = self._winmm.midiInGetNumDevs()
+        names = []
+        for index in range(count):
+            caps = ctypes.create_string_buffer(404)
+            result = self._winmm.midiInGetDevCapsW(index, caps, ctypes.sizeof(caps))
+            if result == 0:
+                names.append(ctypes.wstring_at(ctypes.addressof(caps) + 8))
+        return names
+
+    def open_input(self, name: str, callback: Callable[[object], None]) -> MidiPort:
+        names = self.get_input_names()
+        try:
+            index = names.index(name)
+        except ValueError as error:
+            raise ValueError("That MIDI input is no longer available.") from error
+        port = WindowsMidiPort(self, index, callback)
+        self._ports.add(port)
+        return port
+
+    def _discard(self, port: "WindowsMidiPort") -> None:
+        self._ports.discard(port)
+
+
+class WindowsMidiPort:
+    def __init__(self, backend: WindowsMidiBackend, index: int, callback: Callable[[object], None]):
+        self._backend = backend
+        self._winmm = backend._winmm
+        self._ctypes = backend._ctypes
+        self._closed = False
+        self._callback = callback
+        self._callback_ref = backend._callback_type(self._on_callback)
+        handle = self._ctypes.c_void_p()
+        result = self._winmm.midiInOpen(
+            self._ctypes.byref(handle), index, self._callback_ref, None, 0x00030000
+        )
+        if result != 0:
+            raise RuntimeError(f"Windows MIDI input could not be opened (winmm error {result}).")
+        self._handle = handle
+        result = self._winmm.midiInStart(self._handle)
+        if result != 0:
+            self.close()
+            raise RuntimeError(f"Windows MIDI input could not be started (winmm error {result}).")
+
+    def _on_callback(self, _handle, message_type, _instance, param1, _param2):
+        if message_type == 0x3:  # MIM_DATA
+            event = _event_from_short_message(int(param1 or 0))
+            if event is not None:
+                self._callback(type("WinMMMessage", (), {
+                    "type": "note_on",
+                    "note": event.note,
+                    "velocity": event.velocity,
+                    "channel": event.channel,
+                })())
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._winmm.midiInStop(self._handle)
+        self._winmm.midiInReset(self._handle)
+        self._winmm.midiInClose(self._handle)
+        self._backend._discard(self)
+
+
 def create_mido_backend() -> MidiBackend:
+    if sys.platform == "win32":
+        try:
+            return WindowsMidiBackend()
+        except (AttributeError, OSError):
+            pass
     try:
         import mido
     except ImportError:

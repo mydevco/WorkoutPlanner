@@ -18,10 +18,11 @@ forge_fitness.spec       Reproducible Windows packaging configuration
 
 ## Setup and run
 
-Python 3.13 is recommended for Windows native MIDI, followed by Python 3.12,
-because `python-rtmidi` wheels are more likely to be available there. Python
-3.14 remains a supported core-app fallback: its core requirements install and
-run without compiling C/C++ extensions, while native MIDI remains optional.
+Windows native MIDI uses the standard-library `ctypes` WinMM backend, so it
+does not require Python version-specific wheels or a C++ compiler. Python
+3.14 is supported for the core app and native Windows path; Python 3.13 and
+3.12 are also supported. The optional `mido`/`python-rtmidi` fallback is only
+needed for non-Windows or legacy environments.
 
 All setup scripts and `run_windows.py` must be run from this repository's root.
 If your working copy is another folder, such as
@@ -85,11 +86,11 @@ To enable direct MIDI input, install the optional native backend separately:
 .\setup_windows.ps1 -InstallMidi
 ```
 
-This installs `mido` and `python-rtmidi`. On Python 3.14, if `python-rtmidi`
-has no prebuilt Windows wheel, pip requires Visual Studio Build Tools with the
-Desktop development with C++ workload. Prefer Python 3.13 or 3.12 to avoid
-that compiler requirement. If optional installation fails, the setup script
-warns and leaves the app usable with keyboard and pointer pads.
+On Windows this selects the stdlib WinMM backend; no compiler or native pip
+package is required. The app still runs with keyboard and pointer pads if no
+MIDI hardware is connected. The optional legacy fallback requirements are in
+`requirements-midi-fallback.txt`; installing them may require Visual Studio
+Build Tools when no `python-rtmidi` wheel exists for the selected Python.
 
 For Windows PowerShell, the setup script creates the environment and installs
 dependencies:
@@ -152,9 +153,8 @@ gunicorn "backend.app:create_app()"
 ## Windows native MIDI drum practice
 
 Open <http://127.0.0.1:5000/practice> to use the eight-pad practice page.
-When the optional backend is installed, the Flask process receives MIDI
-directly through `mido` and native `python-rtmidi`; the browser never uses Web
-MIDI. Refresh the device
+When the optional backend is installed, The Flask process receives MIDI directly through Windows WinMM via `ctypes`
+without browser Web MIDI. Refresh the device
 list, select an input, and connect or disconnect it from the page. Notes
 36–43 map to pads 1–8. Keyboard keys `A S D F J K L ;` and pointer clicks
 remain available when no controller is connected. If the native backend or a

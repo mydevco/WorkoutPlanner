@@ -40,10 +40,12 @@ class ForgeApiSmokeTest(unittest.TestCase):
         requirements = root.joinpath("requirements.txt").read_text()
         midi_requirements = root.joinpath("requirements-midi.txt").read_text()
         self.assertNotIn("python-rtmidi", requirements)
-        self.assertIn("python-rtmidi", midi_requirements)
+        self.assertIn("ctypes", midi_requirements)
+        fallback = root.joinpath("requirements-midi-fallback.txt").read_text()
+        self.assertIn("python-rtmidi", fallback)
         setup = root.joinpath("setup_windows.ps1").read_text()
         self.assertIn('@("3.13", "3.12", "3.14")', setup)
-        self.assertIn("Visual Studio Build Tools", setup)
+        self.assertIn("winmm via the Python standard library", setup)
 
     def test_program_search_ui_and_main_navigation(self):
         programs_page = self.client.get("/programs").get_data(as_text=True)
