@@ -35,6 +35,12 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertIn("devices", response.get_json())
         self.assertEqual(self.client.get("/api/midi/events").get_json()["events"], [])
 
+    def test_native_midi_install_is_optional(self):
+        requirements = Path(__file__).parents[1].joinpath("requirements.txt").read_text()
+        midi_requirements = Path(__file__).parents[1].joinpath("requirements-midi.txt").read_text()
+        self.assertNotIn("python-rtmidi", requirements)
+        self.assertIn("python-rtmidi", midi_requirements)
+
     def test_program_search_ui_and_main_navigation(self):
         programs_page = self.client.get("/programs").get_data(as_text=True)
         self.assertIn("program-search", programs_page)

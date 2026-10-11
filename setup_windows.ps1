@@ -1,5 +1,6 @@
 param(
-    [switch]$ResetVenv
+    [switch]$ResetVenv,
+    [switch]$InstallMidi
 )
 
 $ErrorActionPreference = "Stop"
@@ -8,7 +9,7 @@ Set-Location $ProjectRoot
 $VenvPath = Join-Path $ProjectRoot ".venv"
 $AlreadyActive = $env:VIRTUAL_ENV
 
-foreach ($RequiredFile in @("requirements.txt", "run_windows.py", "forge_fitness.spec")) {
+foreach ($RequiredFile in @("requirements.txt", "requirements-midi.txt", "run_windows.py", "forge_fitness.spec")) {
     if (-not (Test-Path (Join-Path $ProjectRoot $RequiredFile))) {
         throw "This is not the Forge Fitness source folder: '$ProjectRoot' is missing $RequiredFile. Clone or check out the project branch, then run this script from its repository root."
     }
@@ -58,6 +59,13 @@ $VenvPython = Join-Path $VenvPath "Scripts\python.exe"
 if ($LASTEXITCODE -ne 0) { throw "pip upgrade failed." }
 & $VenvPython -m pip install -r requirements.txt
 if ($LASTEXITCODE -ne 0) { throw "Dependency installation failed." }
+if ($InstallMidi) {
+    Write-Host "Installing optional native MIDI dependencies..."
+    & $VenvPython -m pip install -r requirements-midi.txt
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Native MIDI dependencies could not be installed. The app still runs with keyboard/pointer pads. Use Python 3.12 or 3.13, or install Visual Studio Build Tools, then retry with -InstallMidi."
+    }
+}
 if ($AlreadyActive -eq $VenvPath -or $AlreadyActive -eq (Resolve-Path $VenvPath -ErrorAction SilentlyContinue).Path) {
     Write-Host "Setup complete. The project environment is already active; do not run Activate.ps1 again."
 } elseif ($AlreadyActive) {

@@ -18,10 +18,10 @@ forge_fitness.spec       Reproducible Windows packaging configuration
 
 ## Setup and run
 
-Python 3.12 or 3.13 is recommended on Windows. Python 3.14 can work when
-current wheels are available, but the native `python-rtmidi` and PyInstaller
-packages may lag a new Python release. If dependency installation fails on
-3.14, install Python 3.13 and recreate the virtual environment.
+Python 3.12 or 3.13 is recommended on Windows. Python 3.14 can run the core
+app, but native MIDI and PyInstaller wheels may lag a new Python release.
+Native MIDI is intentionally optional, so the core requirements do not compile
+C/C++ extensions.
 
 All setup scripts and `run_windows.py` must be run from this repository's root.
 If your working copy is another folder, such as
@@ -64,6 +64,19 @@ python -m venv .venv
 python -m pip install -r requirements.txt
 python -m backend.app
 ```
+
+To enable direct MIDI input, install the optional native backend separately:
+
+```powershell
+.\setup_windows.ps1 -InstallMidi
+```
+
+This installs `mido` and `python-rtmidi`. On Python 3.14, `python-rtmidi` may
+have no prebuilt Windows wheel and pip may require a Visual Studio C++ build
+toolchain. If that optional install fails, the setup script warns and leaves
+the app usable with keyboard and pointer pads. Use Python 3.13 or 3.12 for
+the easiest native MIDI setup, or install the required Visual Studio Build
+Tools and rerun the command.
 
 For Windows PowerShell, the setup script creates the environment and installs
 dependencies:
@@ -125,8 +138,9 @@ gunicorn "backend.app:create_app()"
 ## Windows native MIDI drum practice
 
 Open <http://127.0.0.1:5000/practice> to use the eight-pad practice page.
-The Flask process receives MIDI directly through `mido` and the native
-`python-rtmidi` backend; the browser never uses Web MIDI. Refresh the device
+When the optional backend is installed, the Flask process receives MIDI
+directly through `mido` and native `python-rtmidi`; the browser never uses Web
+MIDI. Refresh the device
 list, select an input, and connect or disconnect it from the page. Notes
 36–43 map to pads 1–8. Keyboard keys `A S D F J K L ;` and pointer clicks
 remain available when no controller is connected. If the native backend or a
