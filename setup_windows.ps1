@@ -8,6 +8,12 @@ Set-Location $ProjectRoot
 $VenvPath = Join-Path $ProjectRoot ".venv"
 $AlreadyActive = $env:VIRTUAL_ENV
 
+foreach ($RequiredFile in @("requirements.txt", "run_windows.py", "forge_fitness.spec")) {
+    if (-not (Test-Path (Join-Path $ProjectRoot $RequiredFile))) {
+        throw "This is not the Forge Fitness source folder: '$ProjectRoot' is missing $RequiredFile. Clone or check out the project branch, then run this script from its repository root."
+    }
+}
+
 if ($ResetVenv) {
     if (Test-Path $VenvPath) {
         Write-Host "Removing only $VenvPath"

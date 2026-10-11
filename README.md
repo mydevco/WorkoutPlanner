@@ -23,6 +23,40 @@ current wheels are available, but the native `python-rtmidi` and PyInstaller
 packages may lag a new Python release. If dependency installation fails on
 3.14, install Python 3.13 and recreate the virtual environment.
 
+All setup scripts and `run_windows.py` must be run from this repository's root.
+If your working copy is another folder, such as
+`E:\work\PythonProjects\SynthTrainer`, it will not contain these files until
+you clone or update it with this project branch. From PowerShell, obtain the
+source first:
+
+```powershell
+Set-Location E:\work\PythonProjects
+git clone https://github.com/mydevco/WorkoutPlanner.git SynthTrainer
+Set-Location .\SynthTrainer
+git fetch origin mydevco-native-midi-windows
+git switch --track origin/mydevco-native-midi-windows
+```
+
+For an existing checkout, use `git fetch` and `git switch` instead of cloning:
+
+```powershell
+Set-Location E:\work\PythonProjects\SynthTrainer
+git fetch origin mydevco-native-midi-windows
+git switch mydevco-native-midi-windows
+git pull --ff-only
+```
+
+Confirm the files are present before setup:
+
+```powershell
+Get-ChildItem .\setup_windows.ps1, .\run_windows.py, .\requirements.txt
+```
+
+If `setup_windows.ps1` reports that required files are missing, it was started
+from the wrong folder or the branch has not been checked out yet. Do not copy
+only the script; use the complete repository checkout so the Flask app,
+templates, static files, and packaging spec stay together.
+
 ```bash
 python -m venv .venv
 # Windows: .venv\Scripts\activate
