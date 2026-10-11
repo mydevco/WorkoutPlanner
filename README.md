@@ -18,7 +18,10 @@ forge_fitness.spec       Reproducible Windows packaging configuration
 
 ## Setup and run
 
-Python 3.10+ is recommended.
+Python 3.12 or 3.13 is recommended on Windows. Python 3.14 can work when
+current wheels are available, but the native `python-rtmidi` and PyInstaller
+packages may lag a new Python release. If dependency installation fails on
+3.14, install Python 3.13 and recreate the virtual environment.
 
 ```bash
 python -m venv .venv
@@ -26,6 +29,43 @@ python -m venv .venv
 # macOS/Linux: source .venv/bin/activate
 python -m pip install -r requirements.txt
 python -m backend.app
+```
+
+For Windows PowerShell, the setup script creates the environment and installs
+dependencies:
+
+```powershell
+.\setup_windows.ps1
+.\.venv\Scripts\Activate.ps1
+python -m backend.app
+```
+
+### Recovering a failed or locked Windows `.venv`
+
+The `venvlauncher.exe` copy error usually means `.venv` is stale, partially
+created, or locked by a running Python process, IDE terminal, test runner, or
+editor. Deactivate the environment, stop the app or test process, and close
+terminals or IDE windows that use this project before removing it. These
+commands remove only the project's `.venv` directory:
+
+```powershell
+deactivate
+Get-Process -Name python,pythonw -ErrorAction SilentlyContinue
+# Close only the listed project processes, terminals, or IDE task.
+Remove-Item -LiteralPath .\.venv -Recurse -Force
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+If `py -3.13` is not installed, replace it with `py -3.12` or `python`.
+If `Remove-Item` reports that a file is still in use, close the remaining
+Python process or IDE terminal and rerun only that `Remove-Item` command. The
+equivalent scripted recovery is:
+
+```powershell
+.\setup_windows.ps1 -ResetVenv
 ```
 
 Open <http://127.0.0.1:5000>. The database is created and seeded on first
@@ -48,14 +88,11 @@ remain available when no controller is connected. If the native backend or a
 device is unavailable, the rest of the app still works and the page reports
 the specific status.
 
-Build a Windows `.exe` from a Windows PowerShell terminal after installing
-the requirements:
+Build a Windows `.exe` from a Windows PowerShell terminal:
 
 ```powershell
-python -m venv .venv
-.venv\Scripts\Activate.ps1
-python -m pip install -r requirements.txt
-python -m PyInstaller --noconfirm --clean forge_fitness.spec
+.\setup_windows.ps1
+.\build_windows.ps1
 .\dist\ForgeFitness.exe
 ```
 
