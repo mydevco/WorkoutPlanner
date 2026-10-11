@@ -24,12 +24,12 @@ if ($ResetVenv) {
 
 if (-not (Get-Command py -ErrorAction SilentlyContinue) -and
     -not (Get-Command python -ErrorAction SilentlyContinue)) {
-    throw "Python was not found. Install Python 3.14 and reopen PowerShell."
+    throw "Python was not found. Install Python 3.13 or 3.12 for native MIDI support, then reopen PowerShell."
 }
 
 $PythonArgs = @()
 if (Get-Command py -ErrorAction SilentlyContinue) {
-    foreach ($Candidate in @("3.14", "3.13", "3.12")) {
+    foreach ($Candidate in @("3.13", "3.12", "3.14")) {
         & py "-$Candidate" --version *> $null
         if ($LASTEXITCODE -eq 0) {
             $PythonArgs = @("-$Candidate")

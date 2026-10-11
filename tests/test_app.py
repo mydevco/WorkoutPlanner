@@ -42,7 +42,7 @@ class ForgeApiSmokeTest(unittest.TestCase):
         self.assertNotIn("python-rtmidi", requirements)
         self.assertIn("python-rtmidi", midi_requirements)
         setup = root.joinpath("setup_windows.ps1").read_text()
-        self.assertIn('@("3.14", "3.13", "3.12")', setup)
+        self.assertIn('@("3.13", "3.12", "3.14")', setup)
         self.assertIn("Visual Studio Build Tools", setup)
 
     def test_program_search_ui_and_main_navigation(self):
