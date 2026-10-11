@@ -12,11 +12,65 @@ backend/                 Flask application, schema, and seed data
 frontend/templates/      Accessible HTML pages
 frontend/static/         CSS and browser JavaScript
 tests/                   Smoke tests for the API and page routes
+run_windows.py           PyInstaller entry point for the Windows executable
+forge_fitness.spec       Reproducible Windows packaging configuration
 ```
 
 ## Setup and run
 
-Python 3.10+ is recommended.
+Windows native MIDI uses the standard-library `ctypes` WinMM backend, so it
+does not require Python version-specific wheels or a C++ compiler. Python
+3.14 is supported for the core app and native Windows path; Python 3.13 and
+3.12 are also supported. The optional `mido`/`python-rtmidi` fallback is only
+needed for non-Windows or legacy environments.
+
+All setup scripts and `run_windows.py` must be run from this repository's root.
+If your working copy is another folder, such as
+`E:\work\PythonProjects\SynthTrainer`, it will not contain these files until
+you clone or update it with this project branch. From PowerShell, obtain the
+source first:
+
+```powershell
+Set-Location E:\work\PythonProjects
+git clone https://github.com/mydevco/WorkoutPlanner.git SynthTrainer
+Set-Location .\SynthTrainer
+git fetch origin mydevco-native-midi-windows
+git switch --track origin/mydevco-native-midi-windows
+```
+
+For an existing checkout, use `git fetch` and `git switch` instead of cloning:
+
+```powershell
+Set-Location E:\work\PythonProjects\SynthTrainer
+git fetch origin mydevco-native-midi-windows
+git switch mydevco-native-midi-windows
+git pull --ff-only
+```
+
+Confirm the files are present before setup:
+
+```powershell
+Get-ChildItem .\setup_windows.ps1, .\run_windows.py, .\requirements.txt
+```
+
+If `setup_windows.ps1` reports that required files are missing, it was started
+from the wrong folder or the branch has not been checked out yet. Do not copy
+only the script; use the complete repository checkout so the Flask app,
+templates, static files, and packaging spec stay together.
+
+If `requirements-midi.txt` is missing, the checkout is older than the native
+MIDI changes. Update it before requesting optional MIDI installation:
+
+```powershell
+Set-Location E:\work\PythonProjects\SynthTrainer
+git fetch origin mydevco-native-midi-windows
+git switch mydevco-native-midi-windows
+git pull --ff-only
+Get-ChildItem .\requirements-midi.txt, .\setup_windows.ps1, .\run_windows.py
+```
+
+Do not run `pip install -r requirements-midi.txt` until that file is present.
+Core setup intentionally does not require it.
 
 ```bash
 python -m venv .venv
@@ -26,6 +80,67 @@ python -m pip install -r requirements.txt
 python -m backend.app
 ```
 
+To enable direct MIDI input, install the optional native backend separately:
+
+```powershell
+.\setup_windows.ps1 -InstallMidi
+```
+
+On Windows this selects the stdlib WinMM backend; no compiler or native pip
+package is required. The app still runs with keyboard and pointer pads if no
+MIDI hardware is connected. The optional legacy fallback requirements are in
+`requirements-midi-fallback.txt`; installing them may require Visual Studio
+Build Tools when no `python-rtmidi` wheel exists for the selected Python.
+
+For Windows PowerShell, the setup script creates the environment and installs
+dependencies:
+
+```powershell
+.\setup_windows.ps1
+.\.venv\Scripts\Activate.ps1
+python -m backend.app
+```
+
+Run `setup_windows.ps1` normally, not with a leading dot (`. .\setup_windows.ps1`),
+and do not run `Activate.ps1` again if the prompt already starts with `(.venv)`.
+The setup script never activates or nests an environment, so it is safe to rerun.
+
+### Recovering a failed or locked Windows `.venv`
+
+The `venvlauncher.exe` copy error usually means `.venv` is stale, partially
+created, or locked by a running Python process, IDE terminal, test runner, or
+editor. Deactivate the environment, stop the app or test process, and close
+terminals or IDE windows that use this project before removing it. These
+commands remove only the project's `.venv` directory:
+
+```powershell
+deactivate
+Get-Process -Name python,pythonw -ErrorAction SilentlyContinue
+# Close only the listed project processes, terminals, or IDE task.
+Remove-Item -LiteralPath .\.venv -Recurse -Force
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
+
+If `py -3.13` is not installed, use `py -3.12`. Python 3.14 can be used for
+the core app with `py -3.14`, but may require C++ Build Tools for native MIDI.
+If `Remove-Item` reports that a file is still in use, close the remaining
+Python process or IDE terminal and rerun only that `Remove-Item` command. The
+equivalent scripted recovery is:
+
+```powershell
+.\setup_windows.ps1 -ResetVenv
+```
+
+If the prompt already contains many repeated `(.venv)` prefixes, close that
+PowerShell window and open a fresh one; this immediately removes the nested
+prompt wrappers without touching project files. Then run
+`.\setup_windows.ps1` once and activate once. In an interactive shell, running
+`deactivate` repeatedly can unwind the same wrappers, but a fresh terminal is
+the safer recovery.
+
 Open <http://127.0.0.1:5000>. The database is created and seeded on first
 start. Set `FORGE_DATABASE` to use a different SQLite file and set
 `FLASK_DEBUG=1` only for local development. A production deployment should
@@ -34,6 +149,30 @@ use a WSGI server, for example:
 ```bash
 gunicorn "backend.app:create_app()"
 ```
+
+## Windows native MIDI drum practice
+
+Open <http://127.0.0.1:5000/practice> to use the eight-pad practice page.
+When the optional backend is installed, The Flask process receives MIDI directly through Windows WinMM via `ctypes`
+without browser Web MIDI. Refresh the device
+list, select an input, and connect or disconnect it from the page. Notes
+36–43 map to pads 1–8. Keyboard keys `A S D F J K L ;` and pointer clicks
+remain available when no controller is connected. If the native backend or a
+device is unavailable, the rest of the app still works and the page reports
+the specific status.
+
+Build a Windows `.exe` from a Windows PowerShell terminal:
+
+```powershell
+.\setup_windows.ps1
+.\build_windows.ps1
+.\dist\ForgeFitness.exe
+```
+
+The executable starts the local server on `127.0.0.1:5000`; open that URL
+after launch. `PORT` can change the port. Windows MIDI drivers and controller
+permissions remain host-specific; the executable can still run without a
+connected MIDI device.
 
 ## Optional Google and Microsoft OAuth
 

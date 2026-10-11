@@ -26,6 +26,7 @@
         <a class="{{ 'active' if page == 'exercises' else '' }}" href="{{ url_for('exercises') }}">Exercises</a>
         <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}">Programs</a>
         <a class="{{ 'active' if page == 'programs' else '' }}" href="{{ url_for('programs') }}#program-builder">Create plan</a>
+        <a class="{{ 'active' if page == 'practice' else '' }}" href="{{ url_for('practice') }}">Practice</a>
         <a class="nav-admin {{ 'active' if page == 'admin' else '' }}" href="{{ url_for('admin') }}">Manage Catalog</a>
         {% if current_user %}
           <form class="nav-auth no-print" method="post" action="{{ url_for('logout') }}"><span>{{ current_user.name or current_user.email }}</span><button type="submit">Log out</button></form>
@@ -48,6 +49,7 @@
         <a href="{{ url_for('catalog') }}">Workout catalog</a>
         <a href="{{ url_for('exercises') }}">Exercise catalog</a>
         <a href="{{ url_for('programs') }}">Training programs</a>
+        <a href="{{ url_for('practice') }}">Drum practice</a>
         <a href="{{ url_for('admin') }}">Admin CRUD</a>
       </div>
       <p class="footer-note">© 2026 Forge Fitness<br>Move well, every day.</p>

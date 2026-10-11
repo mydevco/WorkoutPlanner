@@ -22,10 +22,30 @@ class ForgeApiSmokeTest(unittest.TestCase):
             TEST_DATABASE.unlink()
 
     def test_pages_and_healthcheck(self):
-        for path in ("/", "/catalog", "/exercises", "/programs", "/admin", "/login"):
+        for path in ("/", "/catalog", "/exercises", "/programs", "/practice", "/admin", "/login"):
             response = self.client.get(path)
             self.assertEqual(response.status_code, 200, path)
         self.assertEqual(self.client.get("/healthz").get_json()["status"], "ok")
+
+    def test_midi_api_is_graceful_without_native_backend(self):
+        page = self.client.get("/practice").get_data(as_text=True)
+        self.assertIn("midi-device", page)
+        response = self.client.get("/api/midi/devices")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("devices", response.get_json())
+        self.assertEqual(self.client.get("/api/midi/events").get_json()["events"], [])
+
+    def test_native_midi_install_is_optional(self):
+        root = Path(__file__).parents[1]
+        requirements = root.joinpath("requirements.txt").read_text()
+        midi_requirements = root.joinpath("requirements-midi.txt").read_text()
+        self.assertNotIn("python-rtmidi", requirements)
+        self.assertIn("ctypes", midi_requirements)
+        fallback = root.joinpath("requirements-midi-fallback.txt").read_text()
+        self.assertIn("python-rtmidi", fallback)
+        setup = root.joinpath("setup_windows.ps1").read_text()
+        self.assertIn('@("3.13", "3.12", "3.14")', setup)
+        self.assertIn("winmm via the Python standard library", setup)
 
     def test_program_search_ui_and_main_navigation(self):
         programs_page = self.client.get("/programs").get_data(as_text=True)

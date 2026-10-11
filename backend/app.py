@@ -13,6 +13,8 @@ from urllib.parse import urlparse
 from authlib.integrations.flask_client import OAuth
 from flask import Flask, g, jsonify, redirect, render_template, request, session, url_for
 
+from .midi import MidiService
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 DEFAULT_DATABASE = BASE_DIR / "backend" / "workouts.db"
@@ -390,6 +392,8 @@ def create_app(test_config: dict | None = None) -> Flask:
     validate_oauth_config(app.config)
     oauth = OAuth(app)
     register_oauth_providers(app, oauth)
+    midi_service = MidiService()
+    app.extensions["midi_service"] = midi_service
 
     @app.context_processor
     def auth_context():
@@ -425,6 +429,10 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get("/programs")
     def programs():
         return render_template("programs.html", page="programs")
+
+    @app.get("/practice")
+    def practice():
+        return render_template("practice.html", page="practice")
 
     @app.get("/exercises")
     def exercises():
@@ -479,6 +487,30 @@ def create_app(test_config: dict | None = None) -> Flask:
     @app.get("/healthz")
     def healthz():
         return jsonify({"status": "ok"})
+
+    @app.get("/api/midi/devices")
+    def midi_devices():
+        service: MidiService = app.extensions["midi_service"]
+        return jsonify({"devices": service.devices(), **service.status()})
+
+    @app.post("/api/midi/connect")
+    def midi_connect():
+        payload = request.get_json(silent=True) or {}
+        try:
+            service: MidiService = app.extensions["midi_service"]
+            return jsonify(service.connect(str(payload.get("device", ""))))
+        except (RuntimeError, ValueError) as error:
+            return jsonify({"error": str(error)}), 400
+
+    @app.post("/api/midi/disconnect")
+    def midi_disconnect():
+        service: MidiService = app.extensions["midi_service"]
+        return jsonify(service.disconnect())
+
+    @app.get("/api/midi/events")
+    def midi_events():
+        service: MidiService = app.extensions["midi_service"]
+        return jsonify({"events": service.poll(), **service.status()})
 
     @app.get("/api/equipment")
     def equipment():

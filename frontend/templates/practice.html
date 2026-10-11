@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Drum Pad Practice — Forge Fitness{% endblock %}
+{% block content %}
+<section class="page-hero practice-hero">
+  <div class="container page-hero-inner">
+    <div><p class="eyebrow">Native MIDI practice</p><h1>Play the<br><em>groove.</em></h1></div>
+    <p>Connect a MIDI controller directly to this Windows app. Notes 36–43 trigger the eight pads; keyboard and pointer controls always remain available.</p>
+  </div>
+</section>
+<section class="section practice-section">
+  <div class="container">
+    <div class="midi-panel">
+      <div class="panel-heading"><div><p class="eyebrow">MIDI input</p><h2>Controller</h2></div><span id="midi-status" class="midi-status" role="status">Checking native MIDI…</span></div>
+      <div class="midi-controls">
+        <label for="midi-device">Input device<select id="midi-device"><option value="">No devices found</option></select></label>
+        <button id="midi-refresh" class="button button-light" type="button">Refresh devices</button>
+        <button id="midi-connect" class="button button-primary" type="button">Connect</button>
+        <button id="midi-disconnect" class="button button-light" type="button" disabled>Disconnect</button>
+      </div>
+      <p id="midi-error" class="form-message" role="alert" aria-live="polite"></p>
+    </div>
+    <div class="practice-heading"><div><p class="eyebrow">Practice pads</p><h2>Keep time.</h2></div><p id="last-hit" class="last-hit" aria-live="polite">Waiting for a hit…</p></div>
+    <div id="drum-pads" class="drum-pad-grid" aria-label="Drum pads">
+      {% for pad in range(8) %}<button class="drum-pad" type="button" data-pad="{{ pad }}" aria-label="Drum pad {{ pad + 1 }}"><span>0{{ pad + 1 }}</span><strong>{{ ["Kick", "Snare", "Closed hat", "Open hat", "Tom low", "Tom high", "Clap", "Crash"][pad] }}</strong><small>MIDI {{ 36 + pad }} · Key {{ ["A", "S", "D", "F", "J", "K", "L", ";"][pad] }}</small></button>{% endfor %}
+    </div>
+    <p class="practice-note">Velocity is shown for MIDI note-on events. A note-on with velocity 0 is treated as note-off and ignored.</p>
+  </div>
+</section>
+{% endblock %}

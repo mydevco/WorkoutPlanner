@@ -1,0 +1,3 @@
+# Native Windows MIDI uses the standard-library ctypes winmm backend.
+# No packages are required. The file is intentionally kept as a documented
+# optional install target for setup scripts and older checkout instructions.

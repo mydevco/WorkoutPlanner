@@ -64,6 +64,63 @@
     wireCoach();
   }
 
+  function loadPractice() {
+  const pads = $$(".drum-pad");
+  if (!pads.length) return;
+  const keys = ["a", "s", "d", "f", "j", "k", "l", ";"];
+  const status = $("#midi-status");
+  const error = $("#midi-error");
+  const device = $("#midi-device");
+  const connect = $("#midi-connect");
+  const disconnect = $("#midi-disconnect");
+  const hit = (pad, velocity = null) => {
+    const button = pads[pad];
+    if (!button) return;
+    button.classList.remove("hit");
+    void button.offsetWidth;
+    button.classList.add("hit");
+    const detail = velocity === null ? "Keyboard/pointer" : `Velocity ${velocity}`;
+    $("#last-hit").textContent = `${button.querySelector("strong").textContent} · ${detail}`;
+  };
+  pads.forEach((button) => button.addEventListener("click", () => hit(Number(button.dataset.pad))));
+  document.addEventListener("keydown", (event) => {
+    if (event.repeat || event.target.matches("input, select, textarea, button")) return;
+    const pad = keys.indexOf(event.key.toLowerCase());
+    if (pad >= 0) { event.preventDefault(); hit(pad); }
+  });
+  async function refresh() {
+    try {
+      const data = await api("/api/midi/devices");
+      device.innerHTML = data.devices.length
+        ? data.devices.map((name) => `<option value="${escapeHtml(name)}">${escapeHtml(name)}</option>`).join("")
+        : '<option value="">No MIDI inputs found</option>';
+      status.textContent = data.available ? (data.connected ? `Connected: ${data.device}` : "Native MIDI ready") : "Native MIDI backend unavailable";
+      connect.disabled = !data.devices.length || data.connected;
+      disconnect.disabled = !data.connected;
+      error.textContent = data.error || (data.available ? "" : "Install the native MIDI dependencies and restart the app.");
+    } catch (exception) { error.textContent = exception.message; }
+  }
+  $("#midi-refresh").addEventListener("click", refresh);
+  connect.addEventListener("click", async () => {
+    try { await api("/api/midi/connect", { method: "POST", body: JSON.stringify({ device: device.value }) }); await refresh(); }
+    catch (exception) { error.textContent = exception.message; }
+  });
+  disconnect.addEventListener("click", async () => {
+    try { await api("/api/midi/disconnect", { method: "POST" }); await refresh(); }
+    catch (exception) { error.textContent = exception.message; }
+  });
+  const poll = async () => {
+    try {
+      const data = await api("/api/midi/events");
+      data.events.forEach((event) => hit(event.pad, event.velocity));
+      if (data.connected) status.textContent = `Connected: ${data.device}`;
+      if (data.error) error.textContent = data.error;
+    } catch (_) { /* A stopped local server is reported on the next refresh. */ }
+  };
+  refresh();
+  window.setInterval(poll, 60);
+  }
+
   async function wireCoach() {
     const form = $("#coach-form");
     if (!form) return;
@@ -409,5 +466,6 @@
   if (page === "catalog") loadCatalog();
   if (page === "exercises") loadExercises();
   if (page === "programs") loadPrograms();
+  if (page === "practice") loadPractice();
   if (page === "admin") { loadExerciseManager(); loadExerciseForm(); loadAdmin(); }
 }());
