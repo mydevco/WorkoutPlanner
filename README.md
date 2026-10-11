@@ -18,10 +18,10 @@ forge_fitness.spec       Reproducible Windows packaging configuration
 
 ## Setup and run
 
-Python 3.12 or 3.13 is recommended on Windows. Python 3.14 can run the core
-app, but native MIDI and PyInstaller wheels may lag a new Python release.
-Native MIDI is intentionally optional, so the core requirements do not compile
-C/C++ extensions.
+Python 3.14 is the primary supported Windows runtime. The core requirements
+install and run on 3.14 without compiling C/C++ extensions. Native MIDI and
+PyInstaller wheels may lag a new Python release, so native MIDI is
+intentionally optional.
 
 All setup scripts and `run_windows.py` must be run from this repository's root.
 If your working copy is another folder, such as
@@ -71,12 +71,12 @@ To enable direct MIDI input, install the optional native backend separately:
 .\setup_windows.ps1 -InstallMidi
 ```
 
-This installs `mido` and `python-rtmidi`. On Python 3.14, `python-rtmidi` may
-have no prebuilt Windows wheel and pip may require a Visual Studio C++ build
-toolchain. If that optional install fails, the setup script warns and leaves
-the app usable with keyboard and pointer pads. Use Python 3.13 or 3.12 for
-the easiest native MIDI setup, or install the required Visual Studio Build
-Tools and rerun the command.
+This installs `mido` and `python-rtmidi`. On Python 3.14, if `python-rtmidi`
+has no prebuilt Windows wheel, pip requires Visual Studio Build Tools with the
+Desktop development with C++ workload. If that optional install fails, the
+setup script warns and leaves the app usable with keyboard and pointer pads.
+Install the C++ workload (or retry when a compatible wheel is published) and
+run `.\setup_windows.ps1 -InstallMidi` again.
 
 For Windows PowerShell, the setup script creates the environment and installs
 dependencies:
@@ -104,13 +104,14 @@ deactivate
 Get-Process -Name python,pythonw -ErrorAction SilentlyContinue
 # Close only the listed project processes, terminals, or IDE task.
 Remove-Item -LiteralPath .\.venv -Recurse -Force
-py -3.13 -m venv .venv
+py -3.14 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-If `py -3.13` is not installed, replace it with `py -3.12` or `python`.
+If `py -3.14` is not installed, install Python 3.14 or use `python` only when
+it reports Python 3.14.
 If `Remove-Item` reports that a file is still in use, close the remaining
 Python process or IDE terminal and rerun only that `Remove-Item` command. The
 equivalent scripted recovery is:

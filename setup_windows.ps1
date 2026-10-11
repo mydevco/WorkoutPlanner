@@ -24,12 +24,12 @@ if ($ResetVenv) {
 
 if (-not (Get-Command py -ErrorAction SilentlyContinue) -and
     -not (Get-Command python -ErrorAction SilentlyContinue)) {
-    throw "Python was not found. Install Python 3.12 or 3.13 and reopen PowerShell."
+    throw "Python was not found. Install Python 3.14 and reopen PowerShell."
 }
 
 $PythonArgs = @()
 if (Get-Command py -ErrorAction SilentlyContinue) {
-    foreach ($Candidate in @("3.13", "3.12")) {
+    foreach ($Candidate in @("3.14", "3.13", "3.12")) {
         & py "-$Candidate" --version *> $null
         if ($LASTEXITCODE -eq 0) {
             $PythonArgs = @("-$Candidate")
@@ -63,7 +63,7 @@ if ($InstallMidi) {
     Write-Host "Installing optional native MIDI dependencies..."
     & $VenvPython -m pip install -r requirements-midi.txt
     if ($LASTEXITCODE -ne 0) {
-        Write-Warning "Native MIDI dependencies could not be installed. The app still runs with keyboard/pointer pads. Use Python 3.12 or 3.13, or install Visual Studio Build Tools, then retry with -InstallMidi."
+        Write-Warning "Native MIDI dependencies could not be installed. The app still runs with keyboard/pointer pads. On Python 3.14, install Visual Studio Build Tools with the C++ workload (or wait for a compatible python-rtmidi wheel), then retry with -InstallMidi."
     }
 }
 if ($AlreadyActive -eq $VenvPath -or $AlreadyActive -eq (Resolve-Path $VenvPath -ErrorAction SilentlyContinue).Path) {
